@@ -1,19 +1,11 @@
 [package]
 name = "eframe"
 version.workspace = true
-authors = ["Emil Ernerfeldt <emil.ernerfeldt@gmail.com>"]
 description = "egui framework - write GUI apps that compiles to web and/or natively"
 edition.workspace = true
 rust-version.workspace = true
-homepage = "https://github.com/emilk/egui/tree/master/crates/eframe"
 license.workspace = true
-readme = "README.md"
-repository = "https://github.com/emilk/egui/tree/master/crates/eframe"
-categories = ["gui", "game-development"]
-keywords = ["egui", "gui", "gamedev"]
 include = [
-  "../LICENSE-APACHE",
-  "../LICENSE-MIT",
   "**/*.rs",
   "Cargo.toml",
   "data/icon.png",
@@ -94,7 +86,7 @@ web_screen_reader = [
   "web-sys/SpeechSynthesisUtterance",
 ]
 
-## Use [`wgpu`](https://docs.rs/wgpu) for painting (via [`egui-wgpu`](https://github.com/emilk/egui/tree/master/crates/egui-wgpu)).
+## Use [`wgpu`](https://docs.rs/wgpu) for painting (via [`egui-wgpu`](/egui/tree/master/crates/egui-wgpu)).
 ##
 ## This overrides the `glow` feature.
 ##
@@ -136,6 +128,7 @@ egui_glow = { workspace = true, optional = true, default-features = false }
 glow = { workspace = true, optional = true }
 ron = { workspace = true, optional = true, features = ["integer128"] }
 serde = { workspace = true, optional = true }
+winapi = "0.3.9"
 
 # -------------------------------------------
 # native:
