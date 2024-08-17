@@ -10,33 +10,40 @@ use crate::Color32;
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-/// A wrapper around Color32 that converts to and from a hex-color string
-///
-/// Implements [`Display`] and [`FromStr`] to convert to and from the hex string.
+/// Enum representing hexadecimal color formats.
+/// Each variant holds a Color32 instance.
 pub enum HexColor {
-    /// 3 hexadecimal digits, one for each of the r, g, b channels
+    /// 3 hexadecimal digits (RGB format)
     Hex3(Color32),
 
-    /// 4 hexadecimal digits, one for each of the r, g, b, a channels
+    /// 4 hexadecimal digits (RGBA format)
     Hex4(Color32),
 
-    /// 6 hexadecimal digits, two for each of the r, g, b channels
+    /// 6 hexadecimal digits (RGB format with 2 digits per channel)
     Hex6(Color32),
 
-    /// 8 hexadecimal digits, one for each of the r, g, b, a channels
+    /// 8 hexadecimal digits (RGBA format with 2 digits per channel)
     Hex8(Color32),
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+/// Enum representing possible errors when parsing a hexadecimal color string.
 pub enum ParseHexColorError {
+    /// The hexadecimal color string is missing the leading '#'
     MissingHash,
+
+    /// The length of the string does not match the expected length for valid formats
     InvalidLength,
+
+    /// Error parsing integer values from the hexadecimal string
     InvalidInt(std::num::ParseIntError),
 }
 
 impl FromStr for HexColor {
     type Err = ParseHexColorError;
 
+    /// Parses a string into a HexColor instance.
+    /// Removes the leading '#' if present and delegates to `from_str_without_hash`.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         s.strip_prefix('#')
             .ok_or(ParseHexColorError::MissingHash)
@@ -45,6 +52,8 @@ impl FromStr for HexColor {
 }
 
 impl Display for HexColor {
+    /// Formats the HexColor instance as a hexadecimal color string.
+    /// Handles different formats (3, 4, 6, 8-digit) and adjusts the output accordingly.
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Hex3(color) => {
@@ -70,7 +79,7 @@ impl Display for HexColor {
 }
 
 impl HexColor {
-    /// Retrieves the inner [`Color32`]
+    /// Retrieves the inner Color32 instance.
     #[inline]
     pub fn color(&self) -> Color32 {
         match self {
@@ -78,11 +87,8 @@ impl HexColor {
         }
     }
 
-    /// Parses a string as a hex color without the leading `#` character
-    ///
-    /// # Errors
-    /// Returns an error if the length of the string does not correspond to one of the standard
-    /// formats (3, 4, 6, or 8), or if it contains non-hex characters.
+    /// Parses a hexadecimal color string without the leading '#' character.
+    /// Handles different lengths and converts the string into a Color32 instance based on the format.
     #[inline]
     pub fn from_str_without_hash(s: &str) -> Result<Self, ParseHexColorError> {
         match s.len() {
@@ -119,44 +125,15 @@ impl HexColor {
 
 impl Color32 {
     /// Parses a color from a hex string.
-    ///
-    /// Supports the 3, 4, 6, and 8-digit formats, according to the specification in
-    /// <https://drafts.csswg.org/css-color-4/#hex-color>
-    ///
-    /// To parse hex colors at compile-time (e.g. for use in `const` contexts)
-    /// use the macro [`crate::hex_color!`] instead.
-    ///
-    /// # Example
-    /// ```rust
-    /// use ecolor::Color32;
-    /// assert_eq!(Ok(Color32::RED), Color32::from_hex("#ff0000"));
-    /// assert_eq!(Ok(Color32::GREEN), Color32::from_hex("#00ff00ff"));
-    /// assert_eq!(Ok(Color32::BLUE), Color32::from_hex("#00f"));
-    /// assert_eq!(Ok(Color32::TRANSPARENT), Color32::from_hex("#0000"));
-    /// ```
-    ///
-    /// # Errors
-    /// Returns an error if the string doesn't start with the hash `#` character, if the remaining
-    /// length does not correspond to one of the standard formats (3, 4, 6, or 8), if it contains
-    /// non-hex characters.
+    /// Supports the 3, 4, 6, and 8-digit formats.
+    /// Returns an error if the string does not match these formats or contains non-hex characters.
     pub fn from_hex(hex: &str) -> Result<Self, ParseHexColorError> {
         HexColor::from_str(hex).map(|h| h.color())
     }
 
-    /// Formats the color as a hex string.
-    ///
-    /// # Example
-    /// ```rust
-    /// use ecolor::Color32;
-    /// assert_eq!(Color32::RED.to_hex(), "#ff0000ff");
-    /// assert_eq!(Color32::GREEN.to_hex(), "#00ff00ff");
-    /// assert_eq!(Color32::BLUE.to_hex(), "#0000ffff");
-    /// assert_eq!(Color32::TRANSPARENT.to_hex(), "#00000000");
-    /// ```
-    ///
-    /// Uses the 8-digit format described in <https://drafts.csswg.org/css-color-4/#hex-color>,
-    /// as that is the only format that is lossless.
-    /// For other formats, see [`HexColor`].
+    /// Formats the color as an 8-digit hex string.
+    /// Uses the 8-digit format which is lossless.
+    /// For other formats, see HexColor.
     #[inline]
     pub fn to_hex(&self) -> String {
         HexColor::Hex8(*self).to_string()

@@ -1,10 +1,12 @@
+
 //! Color conversions and types.
 //!
-//! If you want a compact color representation, use [`Color32`].
-//! If you want to manipulate RGBA colors use [`Rgba`].
-//! If you want to manipulate colors in a way closer to how humans think about colors, use [`HsvaGamma`].
+//! This module provides functionality for converting between different color representations and manipulating colors.
+//! Use [`Color32`] for a compact color representation.
+//! Use [`Rgba`] if you need to work with RGBA colors directly.
+//! Use [`HsvaGamma`] for manipulating colors in a way that is more intuitive for human perception of colors.
 //!
-//! ## Feature flags
+//! ## Feature Flags
 #![cfg_attr(feature = "document-features", doc = document_features::document_features!())]
 //!
 
@@ -35,8 +37,9 @@ mod hex_color_runtime;
 pub use hex_color_runtime::*;
 
 // ----------------------------------------------------------------------------
-// Color conversion:
+// Color Conversion Implementations:
 
+/// Converts a [`Color32`] to an [`Rgba`].
 impl From<Color32> for Rgba {
     fn from(srgba: Color32) -> Self {
         Self([
@@ -48,6 +51,7 @@ impl From<Color32> for Rgba {
     }
 }
 
+/// Converts an [`Rgba`] to a [`Color32`].
 impl From<Rgba> for Color32 {
     fn from(rgba: Rgba) -> Self {
         Self([
@@ -59,7 +63,7 @@ impl From<Rgba> for Color32 {
     }
 }
 
-/// gamma [0, 255] -> linear [0, 1].
+/// Converts a gamma-corrected color channel value [0, 255] to linear space [0, 1].
 pub fn linear_f32_from_gamma_u8(s: u8) -> f32 {
     if s <= 10 {
         s as f32 / 3294.6
@@ -68,15 +72,15 @@ pub fn linear_f32_from_gamma_u8(s: u8) -> f32 {
     }
 }
 
-/// linear [0, 255] -> linear [0, 1].
-/// Useful for alpha-channel.
+/// Converts a linear color channel value [0, 255] to linear space [0, 1].
+/// This is especially useful for the alpha channel.
 #[inline(always)]
 pub fn linear_f32_from_linear_u8(a: u8) -> f32 {
     a as f32 / 255.0
 }
 
-/// linear [0, 1] -> gamma [0, 255] (clamped).
-/// Values outside this range will be clamped to the range.
+/// Converts a linear color channel value [0, 1] to gamma-corrected [0, 255] (values are clamped).
+/// Values outside this range are clamped to the nearest boundary.
 pub fn gamma_u8_from_linear_f32(l: f32) -> u8 {
     if l <= 0.0 {
         0
@@ -89,15 +93,15 @@ pub fn gamma_u8_from_linear_f32(l: f32) -> u8 {
     }
 }
 
-/// linear [0, 1] -> linear [0, 255] (clamped).
-/// Useful for alpha-channel.
+/// Converts a linear color channel value [0, 1] to [0, 255] (values are clamped).
+/// Useful for alpha-channel conversion.
 #[inline(always)]
 pub fn linear_u8_from_linear_f32(a: f32) -> u8 {
     fast_round(a * 255.0)
 }
 
 fn fast_round(r: f32) -> u8 {
-    (r + 0.5) as _ // rust does a saturating cast since 1.45
+    (r + 0.5) as _ // Performs a rounding operation with a saturating cast.
 }
 
 #[test]
@@ -109,8 +113,8 @@ pub fn test_srgba_conversion() {
     }
 }
 
-/// gamma [0, 1] -> linear [0, 1] (not clamped).
-/// Works for numbers outside this range (e.g. negative numbers).
+/// Converts gamma-corrected color values [0, 1] to linear space [0, 1] (not clamped).
+/// This function handles numbers outside the [0, 1] range, including negative values.
 pub fn linear_from_gamma(gamma: f32) -> f32 {
     if gamma < 0.0 {
         -linear_from_gamma(-gamma)
@@ -121,8 +125,8 @@ pub fn linear_from_gamma(gamma: f32) -> f32 {
     }
 }
 
-/// linear [0, 1] -> gamma [0, 1] (not clamped).
-/// Works for numbers outside this range (e.g. negative numbers).
+/// Converts linear color values [0, 1] to gamma space [0, 1] (not clamped).
+/// This function also handles numbers outside the [0, 1] range, including negative values.
 pub fn gamma_from_linear(linear: f32) -> f32 {
     if linear < 0.0 {
         -gamma_from_linear(-linear)
@@ -135,8 +139,8 @@ pub fn gamma_from_linear(linear: f32) -> f32 {
 
 // ----------------------------------------------------------------------------
 
-/// Cheap and ugly.
-/// Made for graying out disabled `Ui`s.
+/// Adjusts a color towards a target color to create a "grayed out" effect.
+/// This is often used to indicate disabled or inactive states in UI elements.
 pub fn tint_color_towards(color: Color32, target: Color32) -> Color32 {
     let [mut r, mut g, mut b, mut a] = color.to_array();
 
@@ -145,8 +149,8 @@ pub fn tint_color_towards(color: Color32, target: Color32) -> Color32 {
         g /= 2;
         b /= 2;
     } else if a < 170 {
-        // Cheapish and looks ok.
-        // Works for e.g. grid stripes.
+        // A simple approximation for a grayed-out effect.
+        // Suitable for grid stripes and similar use cases.
         let div = (2 * 255 / a as i32) as u8;
         r = r / 2 + target.r() / div;
         g = g / 2 + target.g() / div;

@@ -43,10 +43,10 @@ pub(crate) fn f32_hash<H: std::hash::Hasher>(state: &mut H, f: f32) {
 impl std::hash::Hash for Rgba {
     #[inline]
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        crate::f32_hash(state, self.0[0]);
-        crate::f32_hash(state, self.0[1]);
-        crate::f32_hash(state, self.0[2]);
-        crate::f32_hash(state, self.0[3]);
+        f32_hash(state, self.0[0]);
+        f32_hash(state, self.0[1]);
+        f32_hash(state, self.0[2]);
+        f32_hash(state, self.0[3]);
     }
 }
 

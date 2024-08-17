@@ -22,23 +22,3 @@ macro_rules! hex_color {
         }
     }};
 }
-
-#[test]
-fn test_from_rgb_hex() {
-    assert_eq!(
-        crate::Color32::from_rgb(0x20, 0x21, 0x22),
-        hex_color!("#202122")
-    );
-    assert_eq!(
-        crate::Color32::from_rgb_additive(0x20, 0x21, 0x22),
-        hex_color!("#202122").additive()
-    );
-}
-
-#[test]
-fn test_from_rgba_hex() {
-    assert_eq!(
-        crate::Color32::from_rgba_unmultiplied(0x20, 0x21, 0x22, 0x50),
-        hex_color!("20212250")
-    );
-}

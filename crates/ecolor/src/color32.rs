@@ -4,11 +4,11 @@ use crate::{
 
 /// This format is used for space-efficient color representation (32 bits).
 ///
-/// Instead of manipulating this directly it is often better
+/// Instead of manipulating this directly, it is often better
 /// to first convert it to either [`Rgba`] or [`crate::Hsva`].
 ///
-/// Internally this uses 0-255 gamma space `sRGBA` color with premultiplied alpha.
-/// Alpha channel is in linear space.
+/// Internally, this uses 0-255 gamma space `sRGBA` color with premultiplied alpha.
+/// The alpha channel is in linear space.
 ///
 /// The special value of alpha=0 means the color is to be treated as an additive color.
 #[repr(C)]
@@ -34,7 +34,7 @@ impl std::ops::IndexMut<usize> for Color32 {
 }
 
 impl Color32 {
-    // Mostly follows CSS names:
+    // Named colors based on common CSS color names:
 
     pub const TRANSPARENT: Self = Self::from_rgba_premultiplied(0, 0, 0, 0);
     pub const BLACK: Self = Self::from_rgb(0, 0, 0);
@@ -64,13 +64,12 @@ impl Color32 {
 
     pub const DEBUG_COLOR: Self = Self::from_rgba_premultiplied(0, 200, 0, 128);
 
-    /// An ugly color that is planned to be replaced before making it to the screen.
+    /// A placeholder color used as a special key for "no color".
     ///
-    /// This is an invalid color, in that it does not correspond to a valid multiplied color,
+    /// This color does not correspond to a valid multiplied color,
     /// nor to an additive color.
-    ///
-    /// This is used as a special color key,
-    /// i.e. often taken to mean "no color".
+    /// It is used as a special color key and should be replaced
+    /// before finalizing any screen rendering.
     pub const PLACEHOLDER: Self = Self::from_rgba_premultiplied(64, 254, 0, 128);
 
     #[deprecated = "Renamed to PLACEHOLDER"]
@@ -86,19 +85,19 @@ impl Color32 {
         Self([r, g, b, 0])
     }
 
-    /// From `sRGBA` with premultiplied alpha.
+    /// Creates a `Color32` from `sRGBA` values with premultiplied alpha.
     #[inline]
     pub const fn from_rgba_premultiplied(r: u8, g: u8, b: u8, a: u8) -> Self {
         Self([r, g, b, a])
     }
 
-    /// From `sRGBA` WITHOUT premultiplied alpha.
+    /// Creates a `Color32` from `sRGBA` values without premultiplied alpha.
     #[inline]
     pub fn from_rgba_unmultiplied(r: u8, g: u8, b: u8, a: u8) -> Self {
         if a == 255 {
-            Self::from_rgb(r, g, b) // common-case optimization
+            Self::from_rgb(r, g, b) // Optimization for common case of fully opaque
         } else if a == 0 {
-            Self::TRANSPARENT // common-case optimization
+            Self::TRANSPARENT // Optimization for common case of fully transparent
         } else {
             let r_lin = linear_f32_from_gamma_u8(r);
             let g_lin = linear_f32_from_gamma_u8(g);
@@ -158,47 +157,46 @@ impl Color32 {
         self.0[3]
     }
 
-    /// Returns an opaque version of self
+    /// Returns an opaque version of this color.
     #[inline]
     pub fn to_opaque(self) -> Self {
         Rgba::from(self).to_opaque().into()
     }
 
-    /// Returns an additive version of self
+    /// Returns an additive version of this color.
     #[inline]
     pub const fn additive(self) -> Self {
         let [r, g, b, _] = self.to_array();
         Self([r, g, b, 0])
     }
 
-    /// Is the alpha=0 ?
+    /// Checks if the alpha value is 0 (additive color).
     #[inline]
     pub fn is_additive(self) -> bool {
         self.a() == 0
     }
 
-    /// Premultiplied RGBA
+    /// Returns the color as a premultiplied RGBA array.
     #[inline]
     pub const fn to_array(&self) -> [u8; 4] {
         [self.r(), self.g(), self.b(), self.a()]
     }
 
-    /// Premultiplied RGBA
+    /// Returns the color as a premultiplied RGBA tuple.
     #[inline]
     pub const fn to_tuple(&self) -> (u8, u8, u8, u8) {
         (self.r(), self.g(), self.b(), self.a())
     }
 
+    /// Converts the color to `sRGBA` values without premultiplying alpha.
     #[inline]
     pub fn to_srgba_unmultiplied(&self) -> [u8; 4] {
         Rgba::from(*self).to_srgba_unmultiplied()
     }
 
-    /// Multiply with 0.5 to make color half as opaque, perceptually.
+    /// Multiplies the color components by a factor (in gamma space) to adjust opacity.
     ///
-    /// Fast multiplication in gamma-space.
-    ///
-    /// This is perceptually even, and faster that [`Self::linear_multiply`].
+    /// This operation is perceptually even and faster than [`Self::linear_multiply`].
     #[inline]
     pub fn gamma_multiply(self, factor: f32) -> Self {
         debug_assert!(0.0 <= factor && factor.is_finite());
@@ -211,22 +209,21 @@ impl Color32 {
         ])
     }
 
-    /// Multiply with 0.5 to make color half as opaque in linear space.
+    /// Multiplies the color components by a factor (in linear space) to adjust opacity.
     ///
-    /// This is using linear space, which is not perceptually even.
-    /// You likely want to use [`Self::gamma_multiply`] instead.
+    /// This operation is more computationally expensive due to conversion to and from linear space.
+    /// Consider using [`Self::gamma_multiply`] for better performance.
     #[inline]
     pub fn linear_multiply(self, factor: f32) -> Self {
         debug_assert!(0.0 <= factor && factor.is_finite());
-        // As an unfortunate side-effect of using premultiplied alpha
-        // we need a somewhat expensive conversion to linear space and back.
+        // Conversion to linear space and back due to premultiplied alpha
         Rgba::from(self).multiply(factor).into()
     }
 
-    /// Converts to floating point values in the range 0-1 without any gamma space conversion.
+    /// Converts the color to floating point values in the range 0-1 without gamma correction.
     ///
-    /// Use this with great care! In almost all cases, you want to convert to [`crate::Rgba`] instead
-    /// in order to obtain linear space color values.
+    /// Use this method with caution; in most cases, you should convert to [`Rgba`] instead
+    /// to obtain linear space color values.
     #[inline]
     pub fn to_normalized_gamma_f32(self) -> [f32; 4] {
         let Self([r, g, b, a]) = self;
@@ -238,7 +235,7 @@ impl Color32 {
         ]
     }
 
-    /// Lerp this color towards `other` by `t` in gamma space.
+    /// Linearly interpolates between this color and another color by `t` in gamma space.
     pub fn lerp_to_gamma(&self, other: Self, t: f32) -> Self {
         use emath::lerp;
 
