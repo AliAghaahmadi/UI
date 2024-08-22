@@ -12,7 +12,7 @@ members = [
     "crates/emath",
     "crates/epaint",
     "crates/epaint_default_fonts",
-
+    "file_explorer/*",
     "examples/*",
     "tests/*",
 

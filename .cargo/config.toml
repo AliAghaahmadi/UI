@@ -7,3 +7,6 @@ rustflags = ["--cfg=web_sys_unstable_apis"]
 
 [alias]
 xtask = "run --quiet --package xtask --"
+
+[profile.dev]
+debug = 1  # Emit less detailed debug info to save disk space
