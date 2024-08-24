@@ -5,6 +5,7 @@ use std::fs::metadata;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use std::thread;
+use eframe::egui::{popup_above_or_below_widget, popup_below_widget, AboveOrBelow, Id, PopupCloseBehavior};
 use eframe::egui::TextWrapMode::Wrap;
 
 // Define the Folder struct
@@ -162,73 +163,98 @@ impl eframe::App for FileBrowserApp {
 
             ui.label("Directories & Files:");
             let mut new_path = None;
-                let combined_table = egui_extras::TableBuilder::new(ui)
-                    .striped(true)
-                    .resizable(true)
-                    .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                    .column(egui_extras::Column::initial(150.0).at_least(25.0))
-                    .column(egui_extras::Column::initial(150.0).at_least(25.0))
-                    .min_scrolled_height(0.0);
+            let combined_table = egui_extras::TableBuilder::new(ui)
+                .striped(true)
+                .resizable(true)
+                .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
+                .column(egui_extras::Column::initial(150.0).at_least(25.0))
+                .column(egui_extras::Column::initial(150.0).at_least(25.0))
+                .min_scrolled_height(0.0);
 
-                combined_table.header(20.0, |mut header| {
-                    header.col(|ui| {
-                        ui.strong("Name");
-                    });
-                    header.col(|ui| {
-                        ui.strong("Size");
-                    });
-                })
-                    .body(|mut body| {
-                        for directory in &mut self.directories {
-                            body.row(20.0, |mut row| {
-                                row.col(|ui| {
-                                    ui.label("📁");
-                                    if ui.button(&directory.name).clicked() {
-                                        new_path = Some(format!("{}/{}", self.current_path, directory.name));
+            combined_table.header(20.0, |mut header| {
+                header.col(|ui| {
+                    ui.strong("Name");
+                });
+                header.col(|ui| {
+                    ui.strong("Size");
+                });
+            })
+                .body(|mut body| {
+                    for directory in &mut self.directories {
+                        body.row(20.0, |mut row| {
+                            row.col(|ui| {
+                                ui.label("📁");
+                                if ui.button(&directory.name).clicked() {
+                                    new_path = Some(format!("{}/{}", self.current_path, directory.name));
+                                }
+                            });
+
+                            row.col(|ui| {
+                                let size = directory.size.lock().unwrap().clone();
+                                let calculating = *directory.calculating.lock().unwrap();
+
+                                if size.is_none() && !calculating {
+                                    if ui.button("Calculate").clicked() {
+                                        directory_size(directory);
                                     }
-                                });
+                                } else if calculating {
+                                    ui.add(egui::Spinner::new());
+                                    ui.label("Calculating...");
+                                } else {
+                                    ui.label(format_size(size));
+                                }
+                            });
+                        });
+                    }
 
-                                row.col(|ui| {
-                                    let size = directory.size.lock().unwrap().clone();
-                                    let calculating = *directory.calculating.lock().unwrap();
+                    for file in &self.files {
+                        body.row(20.0, |mut row| {
+                            row.col(|ui| {
+                                if Path::new(&file.clone().dir).extension() != None {
+                                    ui.label(extension_icon(&Path::new(&file.clone().dir).extension().unwrap().to_string_lossy()).unwrap().to_string());
+                                }
+                                else { ui.label("?"); }
+                                let response = ui.button(&file.name);
 
-                                    if size.is_none() && !calculating {
-                                        if ui.button("Calculate").clicked() {
-                                            directory_size(directory);
+                                let popup_id = Id::new(&file.name);
+
+                                if response.secondary_clicked() {
+                                    ui.memory_mut(|mem| mem.toggle_popup(popup_id));
+                                }
+
+                                popup_above_or_below_widget(
+                                    ui,
+                                    popup_id,
+                                    &response,
+                                    AboveOrBelow::Above,
+                                    PopupCloseBehavior::IgnoreClicks,
+                                    |ui| {
+                                        ui.set_min_width(100.0);
+
+                                        let _ = ui.button("Copy");
+                                        let _ = ui.button("Cut");
+                                        let _ = ui.button("Rename");
+                                        if ui.button("Delete").clicked()
+                                        {
+                                            ui.memory_mut(|mem| mem.close_popup());
                                         }
-                                    } else if calculating {
-                                        ui.add(egui::Spinner::new());
-                                        ui.label("Calculating...");
-                                    } else {
-                                        ui.label(format_size(size));
-                                    }
-                                });
+                                    },
+                                );
                             });
-                        }
 
-                        for file in &self.files {
-                            body.row(20.0, |mut row| {
-                                row.col(|ui| {
-                                    if Path::new(&file.clone().dir).extension() != None {
-                                        ui.label(extension_icon(&Path::new(&file.clone().dir).extension().unwrap().to_string_lossy()).unwrap().to_string());
-                                    }
-                                    else { ui.label("?"); }
-                                    let _ = ui.button(&file.name);
-                                });
-
-                                row.col(|ui| {
-                                    ui.label(format_size(file.size));
-                                });
+                            row.col(|ui| {
+                                ui.label(format_size(file.size));
                             });
-                        }
-                    });
+                        });
+                    }
+                });
 
 
 
-                if let Some(path) = new_path {
-                    self.current_path = path.clone();
-                    self.update_directory_list(&path);
-                }
+            if let Some(path) = new_path {
+                self.current_path = path.clone();
+                self.update_directory_list(&path);
+            }
         });
     }
 }

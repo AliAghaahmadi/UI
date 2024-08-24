@@ -10,6 +10,16 @@ publish = false
 [lints]
 workspace = true
 
+[[bench]]
+name = "calc_bench"
+path = "src/backend/calc.rs"
+
+[lib]
+path = "src/backend/lib.rs"
+
+[[bin]]
+name = "main"
+path = "src/main.rs"
 
 [dependencies]
 eframe = { workspace = true, features = [
@@ -18,11 +28,17 @@ eframe = { workspace = true, features = [
 ] }
 eval = "0.4.3"
 clipboard = "0.5.0"
+winit = "0.26.0"
 
 # For image support:
 egui_extras = { workspace = true, features = ["default", "image"] }
 
-env_logger = { version = "0.10", default-features = false, features = [
+env_logger = { version = "0.11.5", default-features = false, features = [
     "auto-color",
     "humantime",
 ] }
+peekmore = "1.3.0"
+#num = "0.4.0"
+# dependencies for the runnable version (feature "executable")
+structopt = { version = "0.3", optional = true }
+colored = { version = "2.0", optional = true }

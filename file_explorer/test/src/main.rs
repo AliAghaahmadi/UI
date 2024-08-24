@@ -1,4 +1,5 @@
 use eframe::egui;
+use eframe::egui::{Context, Window};
 
 mod explorer; // Import the file_browser module
 
