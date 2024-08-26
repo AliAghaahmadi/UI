@@ -2,6 +2,8 @@ pub mod expr;
 pub mod interpreter;
 pub mod parser;
 pub mod tokenizer;
+mod main;
+mod benches;
 
 pub use expr::*;
 pub use interpreter::*;

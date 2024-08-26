@@ -1,73 +1,75 @@
-mod wifi_scanner;
+mod scanner;
 
 use eframe::egui;
-use std::sync::{Arc, Mutex};
-use std::thread;
-use crate::wifi_scanner::{Network, scan_networks, show_network_table};
+use std::process::Command;
+use scanner::{WifiNetwork, parse_wifi_scan_output, display_wifi_networks};
 
-#[derive(Default)]
-pub struct MyApp {
-    networks: Vec<Network>,
-    scanning: bool, // Flag to indicate scanning status
-    scan_result: Arc<Mutex<Option<Vec<Network>>>>,
+pub struct WifiScannerApp {
+    pub wifi_networks: Vec<WifiNetwork>,
+    pub scan_requested: bool,
 }
 
-impl eframe::App for MyApp {
+impl Default for WifiScannerApp {
+    fn default() -> Self {
+        Self {
+            wifi_networks: Vec::new(),
+            scan_requested: false,
+        }
+    }
+}
+
+impl WifiScannerApp {
+    pub fn scan_wifi_networks(&mut self) {
+        let wifi_adapter = "wlp3s0";
+
+        let output = Command::new("./wifi/test/src/sudo_wrapper.sh")
+            .arg("iwlist")
+            .arg(wifi_adapter)
+            .arg("scan")
+            .output()
+            .expect("Failed to execute command");
+
+        let output_str = String::from_utf8_lossy(&output.stdout);
+
+        self.wifi_networks = parse_wifi_scan_output(&output_str);
+        self.scan_requested = true;
+    }
+
+    fn display_wifi_table(&self, ui: &mut egui::Ui) {
+        if self.scan_requested {
+            display_wifi_networks(ui, &self.wifi_networks);
+        } else {
+            ui.label("Click 'Scan WiFi Networks' to see the results.");
+        }
+    }
+}
+
+impl eframe::App for WifiScannerApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        egui::Window::new("Custom Keyboard")
-            .default_pos([100.0, 100.0])
-            .title_bar(true)
-            .show(ctx, |ui| {
-                ui.horizontal(|ui| {
-                    use egui::special_emojis::WIFI;
-                    if ui.button(format!("{WIFI} egui on GitHub")).clicked() {
-                        self.scanning = true; // Set the scanning flag
-                        ctx.request_repaint(); // Request a repaint to update the UI immediately
+        egui::CentralPanel::default().show(ctx, |ui| {
+            ui.heading("WiFi Scanner");
 
-                        let scan_result = self.scan_result.clone();
-
-                        // Perform network scanning in another thread
-                        thread::spawn(move || {
-                            let networks = scan_networks();
-                            let mut guard = scan_result.lock().unwrap();
-                            *guard = Some(networks);
-                        });
-                    }
-
-                    // Conditionally show the spinner next to the button
-                    if self.scanning {
-                        ui.add(egui::Spinner::new());
-                        ui.label("Scanning...");
-                    }
-            });
-
-            ui.label("Available Networks:");
-
-            if let Some(networks) = self.scan_result.lock().unwrap().as_ref() {
-                self.networks = networks.clone();
-                self.scanning = false; // Reset the scanning flag
-                ctx.request_repaint();
-                show_network_table(ui, &self.networks);
-            } else if !self.scanning {
-                show_network_table(ui, &self.networks);
+            if ui.button("Scan WiFi Networks").clicked() {
+                self.scan_wifi_networks();
             }
+
+            self.display_wifi_table(ui);
         });
     }
 }
 
 fn main() -> eframe::Result {
-    env_logger::init(); // Log to stderr (if you run with RUST_LOG=debug).
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default().with_inner_size([960.0, 640.0]),
         ..Default::default()
     };
 
     eframe::run_native(
-        "Network Scanner",
+        "WiFi Scanner",
         options,
         Box::new(|cc| {
             cc.egui_ctx.set_visuals(egui::Visuals::dark());
-            Ok(Box::<MyApp>::default())
+            Ok(Box::<WifiScannerApp>::default())
         }),
     )
 }

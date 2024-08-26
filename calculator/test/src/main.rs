@@ -1,50 +1,62 @@
-// main.rs
-
-mod backend;
+// #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
+#![allow(rustdoc::missing_crate_level_docs)] // it's an example
+use eframe::egui;
 
 mod calculator;
+use calculator::Calculator;
 
-use eframe::egui;
-use calculator::CalculatorApp;
-
-fn main() -> eframe::Result<()> {
+fn main() -> eframe::Result {
+    env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default().with_inner_size([640.0, 640.0]),
+        viewport: egui::ViewportBuilder::default().with_inner_size([640.0, 480.0]),
         ..Default::default()
     };
-
     eframe::run_native(
-        "Calculator",
+        "Custom Calculator App",
         options,
         Box::new(|cc| {
+            // Use the dark theme
             cc.egui_ctx.set_visuals(egui::Visuals::dark());
-            Ok(Box::new(CalculatorApp::default()))
+            // This gives us image support:
+            egui_extras::install_image_loaders(&cc.egui_ctx);
+
+            Ok(Box::<MyApp>::default())
         }),
-    )?;
+    )
+}
 
-    let input = "6*5 - 5515";
+struct MyApp {
+    name: String,
+    calculator: Calculator,
+}
 
-    // Tokenize the input string
-    match tokenize::<f64>(input) {
-        Ok(tokens) => {
-            // Parse the tokens
-            match parse(&tokens) {
-                Ok(expr) => {
-                    // Evaluate the expression
-                    let mut interpreter = Interpreter::default();
-                    // Example: No variables are set in this case
-                    match interpreter.eval(&expr) {
-                        Ok(result) => println!("Result: {}", result),
-                        Err(error) => println!("Evaluation Error: {:?}", error),
-                    }
-                }
-                Err(error) => {
-                    println!("Parse Error: {:?}", error);
-                }
-            }
+impl MyApp {}
+
+impl Default for MyApp {
+    fn default() -> Self {
+        Self {
+            name: "Arthur".to_owned(),
+            calculator: Calculator::new(),
         }
-        Err(error) => {
-            println!("Tokenization Error: {:?}", error);
-        }
+    }
+}
+
+impl eframe::App for MyApp {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        egui::Window::new("Custom Calculator")
+            .default_pos([100.0, 100.0])
+            .title_bar(true)
+            .show(ctx, |ui| {
+                ui.horizontal(|ui| {
+                    ui.label("Your name: ");
+                    ui.text_edit_singleline(&mut self.name);
+                });
+            });
+
+        self.calculator.show(ctx);
+    }
+
+    fn raw_input_hook(&mut self, ctx: &egui::Context, raw_input: &mut egui::RawInput) {
+        self.calculator.bump_events(ctx, raw_input);
     }
 }

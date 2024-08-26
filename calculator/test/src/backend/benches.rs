@@ -1,10 +1,4 @@
 #![feature(test)]
-
-extern crate test;
-
-use rsc::{parse, tokenize, Interpreter, Variant};
-use test::{black_box, Bencher};
-
 const SHORT_STR: &str = "5.324 * 54(pad)";
 const LONG_STR: &str = "0.999998543 / sqrt(54 ^ (x(3))) % applesauce + bees";
 const FUNCTIONS_VARS: &str = "abs(5) + x(3) + abs(x(2)) + sqrt(4)";

@@ -2,12 +2,9 @@ use colored::Colorize;
 use std::io::prelude::*;
 use structopt::StructOpt;
 
-use Calc::{
-    parse, tokenize, InterpretError, Interpreter, Num, ParseError, ParseErrorCode, TokenizeError,
-    Variant,
-};
 use std::fmt::Display;
 use std::ops::Range;
+use crate::{parse, tokenize, InterpretError, Interpreter, Num, ParseError, ParseErrorCode, TokenizeError, Variant};
 
 #[derive(StructOpt)]
 #[structopt(about = "A scientific calculator for the terminal.")]

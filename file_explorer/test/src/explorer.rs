@@ -111,6 +111,15 @@ impl FileBrowserApp {
     }
 }
 
+pub fn delete_file(file_path: &str) {
+    let path = file_path.strip_prefix('/').unwrap_or(file_path);
+
+    match fs::remove_file(path) {
+        Ok(_) => println!("File removed successfully."),
+        Err(e) => println!("Error removing file: {}", e),
+    }
+}
+
 fn get_parent_directories(path: &Path) -> Vec<PathBuf> {
     let mut parents = Vec::new();
     let mut current_path = path.to_path_buf();
@@ -161,8 +170,9 @@ impl eframe::App for FileBrowserApp {
             });
             ui.separator();
 
-            ui.label("Directories & Files:");
             let mut new_path = None;
+            let mut to_delete: Option<String> = None;  // Store the path to delete here
+
             let combined_table = egui_extras::TableBuilder::new(ui)
                 .striped(true)
                 .resizable(true)
@@ -171,14 +181,15 @@ impl eframe::App for FileBrowserApp {
                 .column(egui_extras::Column::initial(150.0).at_least(25.0))
                 .min_scrolled_height(0.0);
 
-            combined_table.header(20.0, |mut header| {
-                header.col(|ui| {
-                    ui.strong("Name");
-                });
-                header.col(|ui| {
-                    ui.strong("Size");
-                });
-            })
+            combined_table
+                .header(20.0, |mut header| {
+                    header.col(|ui| {
+                        ui.strong("Name");
+                    });
+                    header.col(|ui| {
+                        ui.strong("Size");
+                    });
+                })
                 .body(|mut body| {
                     for directory in &mut self.directories {
                         body.row(20.0, |mut row| {
@@ -210,46 +221,56 @@ impl eframe::App for FileBrowserApp {
                     for file in &self.files {
                         body.row(20.0, |mut row| {
                             row.col(|ui| {
-                                if Path::new(&file.clone().dir).extension() != None {
-                                    ui.label(extension_icon(&Path::new(&file.clone().dir).extension().unwrap().to_string_lossy()).unwrap().to_string());
-                                }
-                                else { ui.label("?"); }
-                                let response = ui.button(&file.name);
-
-                                let popup_id = Id::new(&file.name);
-
-                                if response.secondary_clicked() {
-                                    ui.memory_mut(|mem| mem.toggle_popup(popup_id));
+                                if Path::new(&file.dir).extension().is_some() {
+                                    ui.label(extension_icon(&Path::new(&file.dir).extension().unwrap().to_string_lossy()).unwrap());
+                                } else {
+                                    ui.label("?");
                                 }
 
-                                popup_above_or_below_widget(
-                                    ui,
-                                    popup_id,
-                                    &response,
-                                    AboveOrBelow::Above,
-                                    PopupCloseBehavior::IgnoreClicks,
-                                    |ui| {
-                                        ui.set_min_width(100.0);
-
-                                        let _ = ui.button("Copy");
-                                        let _ = ui.button("Cut");
-                                        let _ = ui.button("Rename");
-                                        if ui.button("Delete").clicked()
-                                        {
-                                            ui.memory_mut(|mem| mem.close_popup());
-                                        }
-                                    },
-                                );
+                                let _ = ui.button(&file.name);
                             });
 
                             row.col(|ui| {
                                 ui.label(format_size(file.size));
+
+                                let del_id = Id::new(format!("Del {}", &file.name));
+
+                                let delete_resp = ui.button("🗑");
+
+                                if delete_resp.clicked() {
+                                    ui.memory_mut(|mem| mem.toggle_popup(del_id));
+                                }
+
+                                popup_above_or_below_widget(
+                                    ui,
+                                    del_id,
+                                    &delete_resp,
+                                    AboveOrBelow::Above,
+                                    PopupCloseBehavior::CloseOnClickOutside,
+                                    |ui| {
+                                        ui.set_min_width(100.0);
+                                        ui.label("Are you sure?");
+                                        ui.horizontal(|ui| {
+                                            if ui.button("Yes").clicked() {
+                                                to_delete = Some(file.dir.clone());  // Store the path to delete
+                                                ui.memory_mut(|mem| mem.close_popup());
+                                            }
+                                            if ui.button("No").clicked() {
+                                                ui.memory_mut(|mem| mem.close_popup());
+                                            }
+                                        })
+                                    },
+                                );
                             });
                         });
                     }
                 });
 
-
+            // Perform the delete operation outside of the loop
+            if let Some(path) = to_delete {
+                delete_file(&path);
+                self.update_directory_list(&self.current_path.clone());
+            }
 
             if let Some(path) = new_path {
                 self.current_path = path.clone();
@@ -258,6 +279,7 @@ impl eframe::App for FileBrowserApp {
         });
     }
 }
+
 
 fn format_size(size: Option<u64>) -> String {
     match size {
