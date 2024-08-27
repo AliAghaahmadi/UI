@@ -1,45 +1,70 @@
-mod scanner;
+use std::process::Command;
+use std::sync::{Arc, Mutex};
+use std::thread;
 
 use eframe::egui;
-use std::process::Command;
-use scanner::{WifiNetwork, parse_wifi_scan_output, display_wifi_networks};
+use eframe::egui::{vec2, Button};
+
+mod scanner;
+
+use scanner::{display_wifi_networks, parse_wifi_scan_output, WifiNetwork};
 
 pub struct WifiScannerApp {
-    pub wifi_networks: Vec<WifiNetwork>,
-    pub scan_requested: bool,
+    wifi_networks: Arc<Mutex<Vec<WifiNetwork>>>,
+    scanning: Arc<Mutex<bool>>,
+    scan_error: Arc<Mutex<Option<String>>>,
 }
 
 impl Default for WifiScannerApp {
     fn default() -> Self {
         Self {
-            wifi_networks: Vec::new(),
-            scan_requested: false,
+            wifi_networks: Arc::new(Mutex::new(Vec::new())),
+            scanning: Arc::new(Mutex::new(false)),
+            scan_error: Arc::new(Mutex::new(None)),
         }
     }
 }
 
 impl WifiScannerApp {
-    pub fn scan_wifi_networks(&mut self) {
-        let wifi_adapter = "wlp3s0";
+    pub fn scan_wifi_networks(&self) {
+        let wifi_networks = Arc::clone(&self.wifi_networks);
+        let scanning = Arc::clone(&self.scanning);
+        let scan_error = Arc::clone(&self.scan_error);
 
-        let output = Command::new("./wifi/test/src/sudo_wrapper.sh")
-            .arg("iwlist")
-            .arg(wifi_adapter)
-            .arg("scan")
-            .output()
-            .expect("Failed to execute command");
+        let wifi_adapter = "wlp3s0".to_string();
 
-        let output_str = String::from_utf8_lossy(&output.stdout);
+        thread::spawn(move || {
+            *scanning.lock().unwrap() = true;
+            match Command::new("./wifi/test/src/sudo_wrapper.sh")
+                .arg("iwlist")
+                .arg(&wifi_adapter)
+                .arg("scan")
+                .output()
+            {
+                Ok(output) => {
+                    let output_str = String::from_utf8_lossy(&output.stdout);
+                    let networks = parse_wifi_scan_output(&output_str);
 
-        self.wifi_networks = parse_wifi_scan_output(&output_str);
-        self.scan_requested = true;
+                    let mut wifi_networks = wifi_networks.lock().unwrap();
+                    *wifi_networks = networks;
+                    *scan_error.lock().unwrap() = None;
+                }
+                Err(e) => {
+                    *scan_error.lock().unwrap() = Some(format!("Failed to execute scan command: {}", e));
+                    let mut wifi_networks = wifi_networks.lock().unwrap();
+                    *wifi_networks = Vec::new(); // Clear the list on failure
+                }
+            }
+            *scanning.lock().unwrap() = false;
+        });
     }
 
     fn display_wifi_table(&self, ui: &mut egui::Ui) {
-        if self.scan_requested {
-            display_wifi_networks(ui, &self.wifi_networks);
-        } else {
-            ui.label("Click 'Scan WiFi Networks' to see the results.");
+        let wifi_networks = self.wifi_networks.lock().unwrap();
+        display_wifi_networks(ui, &wifi_networks);
+
+        if let Some(ref error) = *self.scan_error.lock().unwrap() {
+            ui.label(egui::RichText::new(error).color(egui::Color32::RED));
         }
     }
 }
@@ -49,18 +74,26 @@ impl eframe::App for WifiScannerApp {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("WiFi Scanner");
 
-            if ui.button("Scan WiFi Networks").clicked() {
+            if *self.scanning.lock().unwrap() {
+                ui.horizontal(|ui| {
+                    ui.add(egui::Spinner::new());
+                    ui.label("Scanning...");
+                });
+            } else if ui.add_sized(vec2(50.0, 24.0), Button::new("🖧 Scan")).clicked() {
                 self.scan_wifi_networks();
             }
 
             self.display_wifi_table(ui);
         });
+
+        ctx.request_repaint(); // Ensure the UI is constantly refreshed
     }
 }
 
+
 fn main() -> eframe::Result {
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default().with_inner_size([960.0, 640.0]),
+        viewport: egui::ViewportBuilder::default().with_inner_size([450.0, 450.0]),
         ..Default::default()
     };
 
