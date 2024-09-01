@@ -408,7 +408,7 @@ fn drag_and_drop_test(ui: &mut egui::Ui) {
     });
 }
 
-// This is taken from crates/egui_demo_lib/src/debo/drag_and_drop.rs
+// This is taken from crates/egui_demo_lib/test/debo/drag_and_drop.rs
 fn drag_source<R>(
     ui: &mut egui::Ui,
     id: egui::Id,
@@ -444,7 +444,7 @@ fn drag_source<R>(
     }
 }
 
-// TODO(emilk): Update to be more like `crates/egui_demo_lib/src/debo/drag_and_drop.rs`
+// TODO(emilk): Update to be more like `crates/egui_demo_lib/test/debo/drag_and_drop.rs`
 fn drop_target<R>(
     ui: &mut egui::Ui,
     body: impl FnOnce(&mut egui::Ui) -> R,

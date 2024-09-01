@@ -1,12 +1,11 @@
-use std::collections::HashMap;
+use crate::egui::Color32;
 use eframe::egui;
 use std::fs;
 use std::fs::metadata;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 use std::thread;
-use eframe::egui::{popup_above_or_below_widget, popup_below_widget, AboveOrBelow, Id, PopupCloseBehavior};
-use eframe::egui::TextWrapMode::Wrap;
+use eframe::egui::{popup_above_or_below_widget, popup_below_widget, AboveOrBelow, Id, PopupCloseBehavior, RichText};
 
 // Define the Folder struct
 #[derive(Debug, Clone)]
@@ -15,8 +14,10 @@ pub struct Folder {
     pub name: String,
     pub size: Arc<Mutex<Option<u64>>>,
     pub calculating: Arc<Mutex<bool>>,
+    pub error: Arc<Mutex<Option<String>>>,
 }
 
+// Define the File struct
 #[derive(Debug, Clone)]
 pub struct File {
     pub dir: String,
@@ -32,6 +33,7 @@ impl Default for Folder {
             name: String::new(),
             size: Arc::new(Mutex::new(None)),
             calculating: Arc::new(Mutex::new(false)),
+            error: Arc::new(Mutex::new(None)),
         }
     }
 }
@@ -52,6 +54,7 @@ pub struct FileBrowserApp {
     pub files: Vec<File>,
     pub directories: Vec<Folder>,
     pub selected: File,
+    pub search: String,
 }
 
 impl Default for FileBrowserApp {
@@ -67,6 +70,7 @@ impl Default for FileBrowserApp {
             files: Vec::new(),
             directories: Vec::new(),
             selected: File::default(),
+            search: String::new(),
         };
         app.update_directory_list(&start_path);
         app
@@ -74,39 +78,45 @@ impl Default for FileBrowserApp {
 }
 
 impl FileBrowserApp {
-    pub fn update_directory_list(&mut self, path: &str) {
+    fn update_directory_list(&mut self, path: &str) {
         self.files.clear();
         self.directories.clear();
+
+        let search_lower = self.search.to_lowercase();
 
         if let Ok(entries) = fs::read_dir(path) {
             for entry in entries {
                 if let Ok(entry) = entry {
                     let path = entry.path();
-                    if path.is_dir() {
-                        if let Some(dir_name) = path.file_name() {
-                            let dir_name = dir_name.to_string_lossy().to_string();
+                    let name = path.file_name().unwrap().to_string_lossy().to_string();
+
+                    if search_lower.is_empty() || name.to_lowercase().contains(&search_lower) {
+                        if path.is_dir() {
                             let dir_path = path.to_string_lossy().to_string();
-                            self.directories.push(Folder {
+                            let folder = Folder {
                                 dir: dir_path,
-                                name: dir_name,
+                                name,
                                 size: Arc::new(Mutex::new(None)),
                                 calculating: Arc::new(Mutex::new(false)),
-                            });
-                        }
-                    } else {
-                        if let Some(file_name) = path.file_name() {
-                            let file_name = file_name.to_string_lossy().to_string();
-                            let file_path = path.to_string_lossy().to_string();
+                                error: Arc::new(Mutex::new(None)),
+                            };
+
+                            self.directories.push(folder);
+                        } else {
                             let file = File {
-                                dir: file_path,
-                                name: file_name,
+                                dir: path.to_string_lossy().to_string(),
+                                name,
                                 size: metadata(&path).ok().map(|m| m.len()),
                             };
                             self.files.push(file);
                         }
                     }
+                } else {
+                    eprintln!("Error reading entry: {:?}", entry);
                 }
             }
+        } else {
+            eprintln!("Error reading directory: {}", path);
         }
     }
 }
@@ -142,36 +152,70 @@ impl eframe::App for FileBrowserApp {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("File Browser");
 
+            // Navigation buttons and search
             ui.horizontal(|ui| {
                 if ui.button("⏴").clicked() {
                     if let Some(parent) = Path::new(&self.current_path).parent() {
                         if let Some(parent_str) = parent.to_str() {
                             let parent_path = parent_str.to_string();
                             self.current_path = parent_path.clone();
+                            self.search = "".to_string();
                             self.update_directory_list(&parent_path);
                         }
                     }
                 }
 
-                ui.horizontal(|ui|{
-                    for parents in get_parent_directories(Path::new(&self.current_path)){
-                        if parents.file_name() != None
-                        {
-                            if ui.button(parents.file_name().unwrap().to_string_lossy()).clicked()
-                            {
-                                self.current_path = parents.to_string_lossy().parse().unwrap();
-                                self.update_directory_list(&*parents.to_string_lossy());
+                ui.horizontal(|ui| {
+                    for parent in get_parent_directories(Path::new(&self.current_path)) {
+                        if parent.file_name().is_some() {
+                            if ui.button(parent.file_name().unwrap().to_string_lossy()).clicked() {
+                                self.current_path = parent.to_string_lossy().parse().unwrap();
+                                self.search = "".to_string();
+                                self.update_directory_list(&self.current_path.clone());
                             }
 
                             ui.label("/");
                         }
                     }
-                })
+                });
+
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    let response = ui.button("🔎");
+                    let popup_id = Id::new("Search");
+
+                    if response.clicked() {
+                        ui.memory_mut(|mem| mem.toggle_popup(popup_id));
+                    }
+
+                    popup_below_widget(
+                        ui,
+                        popup_id,
+                        &response,
+                        PopupCloseBehavior::CloseOnClickOutside,
+                        |ui| {
+                            ui.horizontal(|ui| {
+                                ui.strong("🔎: ");
+                                ui.set_min_width(300.0);
+                                let search_changed;
+                                {
+                                    let previous_search = self.search.clone();
+                                    let text = ui.text_edit_singleline(&mut self.search);
+                                    text.request_focus();
+                                    search_changed = self.search != previous_search;
+                                }
+
+                                if search_changed {
+                                    self.update_directory_list(&self.current_path.clone());
+                                }
+                            });
+                        },
+                    );
+                });
             });
+
             ui.separator();
 
             let mut new_path = None;
-            let mut to_delete: Option<String> = None;  // Store the path to delete here
 
             let combined_table = egui_extras::TableBuilder::new(ui)
                 .striped(true)
@@ -195,25 +239,78 @@ impl eframe::App for FileBrowserApp {
                         body.row(20.0, |mut row| {
                             row.col(|ui| {
                                 ui.label("📁");
-                                if ui.button(&directory.name).clicked() {
+                                let dir = ui.button(&directory.name);
+
+                                if dir.clicked() {
                                     new_path = Some(format!("{}/{}", self.current_path, directory.name));
                                 }
-                            });
 
-                            row.col(|ui| {
-                                let size = directory.size.lock().unwrap().clone();
-                                let calculating = *directory.calculating.lock().unwrap();
+                                let id = Id::new(format!("Del {}", &directory.name));
 
-                                if size.is_none() && !calculating {
-                                    if ui.button("Calculate").clicked() {
-                                        directory_size(directory);
-                                    }
-                                } else if calculating {
-                                    ui.add(egui::Spinner::new());
-                                    ui.label("Calculating...");
-                                } else {
-                                    ui.label(format_size(size));
+                                if dir.secondary_clicked() {
+                                    ui.memory_mut(|mem| mem.toggle_popup(id));
                                 }
+
+                                popup_above_or_below_widget(
+                                    ui,
+                                    id,
+                                    &dir,
+                                    AboveOrBelow::Above,
+                                    PopupCloseBehavior::CloseOnClickOutside,
+                                    |ui| {
+                                        ui.set_min_width(100.0);
+                                        let size = directory.size.lock().unwrap().clone();
+                                        let calculating = *directory.calculating.lock().unwrap();
+                                        let error = directory.error.lock().unwrap().clone();
+
+                                        ui.vertical(|ui| {
+                                            ui.horizontal(|ui|
+                                                {
+                                                    ui.label("Name: ");
+                                                    ui.strong(directory.clone().name);
+                                                });
+
+                                            if error.is_some() {
+                                                ui.horizontal(|ui|
+                                                    {
+                                                        ui.label("Error: ");
+                                                        ui.label(RichText::new("Something Went Wrong").color(Color32::RED));
+                                                    });
+                                            } else if size.is_none() && !calculating
+                                            {
+                                                ui.horizontal(|ui|
+                                                    {
+                                                        ui.label("Size: ");
+                                                        directory_size(directory);
+                                                    });
+                                            } else if calculating {
+                                                ui.horizontal(|ui|
+                                                    {
+                                                        ui.label("Size: ");
+                                                        ui.add(egui::Spinner::new());
+                                                        ui.label("Calculating...");
+                                                    });
+                                            } else {
+                                                ui.horizontal(|ui|
+                                                    {
+                                                        ui.label("Size: ");
+                                                        ui.label(format_size(size));
+                                                    });
+                                            }
+
+                                            ui.horizontal_centered(|ui|{
+                                                if ui.button("Rename").clicked()
+                                                {
+
+                                                }
+
+                                                let _ = ui.button("Copy");
+                                                let _ = ui.button("Paste");
+                                                let _ = ui.button("Delete");
+                                            })
+                                        })
+                                    },
+                                );
                             });
                         });
                     }
@@ -222,126 +319,96 @@ impl eframe::App for FileBrowserApp {
                         body.row(20.0, |mut row| {
                             row.col(|ui| {
                                 if Path::new(&file.dir).extension().is_some() {
-                                    ui.label(extension_icon(&Path::new(&file.dir).extension().unwrap().to_string_lossy()).unwrap());
+                                    if extension_icon(&Path::new(&file.dir).extension().unwrap().to_string_lossy()) != None
+                                    { ui.label(extension_icon(&Path::new(&file.dir).extension().unwrap().to_string_lossy()).unwrap()); }
                                 } else {
-                                    ui.label("?");
+                                    ui.label("❓");
                                 }
 
                                 let _ = ui.button(&file.name);
                             });
 
                             row.col(|ui| {
-                                ui.label(format_size(file.size));
-
-                                let del_id = Id::new(format!("Del {}", &file.name));
-
-                                let delete_resp = ui.button("🗑");
-
-                                if delete_resp.clicked() {
-                                    ui.memory_mut(|mem| mem.toggle_popup(del_id));
+                                if let Some(size) = file.size {
+                                    ui.label(format_size(Some(size)));
+                                } else {
+                                    ui.label("Unknown");
                                 }
-
-                                popup_above_or_below_widget(
-                                    ui,
-                                    del_id,
-                                    &delete_resp,
-                                    AboveOrBelow::Above,
-                                    PopupCloseBehavior::CloseOnClickOutside,
-                                    |ui| {
-                                        ui.set_min_width(100.0);
-                                        ui.label("Are you sure?");
-                                        ui.horizontal(|ui| {
-                                            if ui.button("Yes").clicked() {
-                                                to_delete = Some(file.dir.clone());  // Store the path to delete
-                                                ui.memory_mut(|mem| mem.close_popup());
-                                            }
-                                            if ui.button("No").clicked() {
-                                                ui.memory_mut(|mem| mem.close_popup());
-                                            }
-                                        })
-                                    },
-                                );
                             });
                         });
                     }
                 });
 
-            // Perform the delete operation outside of the loop
-            if let Some(path) = to_delete {
-                delete_file(&path);
-                self.update_directory_list(&self.current_path.clone());
-            }
-
             if let Some(path) = new_path {
                 self.current_path = path.clone();
+                self.search = "".to_string();
                 self.update_directory_list(&path);
             }
         });
     }
 }
 
+fn directory_size(folder: &Folder) {
+    let folder_path = folder.dir.clone();
+    let calculating = folder.calculating.clone();
+    let error = folder.error.clone();
+    let size = folder.size.clone();
+
+    thread::spawn(move || {
+        *calculating.lock().unwrap() = true;
+        *error.lock().unwrap() = None;
+
+        let result = calculate_size(&folder_path);
+
+        *calculating.lock().unwrap() = false;
+        match result {
+            Ok(s) => *size.lock().unwrap() = Some(s),
+            Err(e) => *error.lock().unwrap() = Some(e),
+        }
+    });
+}
+
+fn calculate_size(path: &str) -> Result<u64, String> {
+    let mut total_size = 0;
+
+    for entry in fs::read_dir(path).map_err(|e| e.to_string())? {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let path = entry.path();
+
+        if path.is_dir() {
+            total_size += calculate_size(path.to_str().ok_or("Invalid path")?)?;
+        } else {
+            total_size += metadata(&path).map_err(|e| e.to_string())?.len();
+        }
+    }
+
+    Ok(total_size)
+}
 
 fn format_size(size: Option<u64>) -> String {
     match size {
-        Some(size) => {
-            let units = ["B", "KB", "MB", "GB", "TB"];
-            let mut size = size as f64;
-            let mut unit = 0;
-            while size >= 1024.0 && unit < units.len() - 1 {
-                size /= 1024.0;
-                unit += 1;
+        Some(bytes) => {
+            if bytes < 1024 {
+                format!("{} B", bytes)
+            } else if bytes < 1024 * 1024 {
+                format!("{:.1} KB", bytes as f64 / 1024.0)
+            } else if bytes < 1024 * 1024 * 1024 {
+                format!("{:.1} MB", bytes as f64 / (1024.0 * 1024.0))
+            } else {
+                format!("{:.1} GB", bytes as f64 / (1024.0 * 1024.0 * 1024.0))
             }
-            format!("{:.2} {}", size, units[unit])
         }
         None => "Unknown".to_string(),
     }
 }
 
-fn directory_size(folder: &Folder) {
-    let dir_path = folder.dir.clone();
-    let size = Arc::clone(&folder.size);
-    let calculating = Arc::clone(&folder.calculating);
-
-    thread::spawn(move || {
-        *calculating.lock().unwrap() = true;
-        let calculated_size = dir_size(Path::new(&dir_path)).ok();
-        *size.lock().unwrap() = calculated_size;
-        *calculating.lock().unwrap() = false;
-    });
-
-    fn dir_size(path: &Path) -> Result<u64, std::io::Error> {
-        let mut size = 0;
-        if path.is_dir() {
-            for entry in fs::read_dir(path)? {
-                let entry = entry?;
-                let path = entry.path();
-                if path.is_dir() {
-                    size += dir_size(&path)?;
-                } else {
-                    size += metadata(path)?.len();
-                }
-            }
-        }
-        Ok(size)
-    }
-}
-
-fn extension_icon (s: &str) -> Result<String, std::io::Error> {
-    let dictionary: HashMap<&str, &str> = HashMap::from([
-        ("png", "🖼"),
-        ("jpg", "🖼"),
-        ("jpeg", "🖼"),
-        ("txt", "🗒"),
-        ("toml", "📔"),
-        ("lock", "📔"),
-        ("rs", "®"),
-    ]);
-
-    let default_value = "?";
-
-    if let Some(value) = dictionary.get(s) {
-        Ok(value.to_string())
-    } else {
-        Ok(default_value.to_string())
+fn extension_icon(extension: &str) -> Option<&'static str> {
+    match extension.to_lowercase().as_str() {
+        "txt" => Some("📄"),
+        "jpg" | "jpeg" | "png" => Some("🖼"),
+        "mp3" | "wav" => Some("🎵"),
+        "pdf" => Some("📄"),
+        "zip" => Some("📦"),
+        _ => Some("❓"),
     }
 }

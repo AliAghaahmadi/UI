@@ -169,24 +169,24 @@ fn test_clean_symbol_name() {
 /// Shorten a path to a Rust source file from a callstack.
 ///
 /// Example input:
-/// * `/Users/emilk/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.24.1/src/runtime/runtime.rs`
-/// * `crates/rerun/src/main.rs`
-/// * `/rustc/d5a82bbd26e1ad8b7401f6a718a9c57c96905483/library/core/src/ops/function.rs`
+/// * `/Users/emilk/.cargo/registry/test/github.com-1ecc6299db9ec823/tokio-1.24.1/test/runtime/runtime.rs`
+/// * `crates/rerun/test/main.rs`
+/// * `/rustc/d5a82bbd26e1ad8b7401f6a718a9c57c96905483/library/core/test/ops/function.rs`
 fn shorten_source_file_path(path: &std::path::Path) -> String {
-    // Look for `src` and strip everything up to it.
+    // Look for `test` and strip everything up to it.
 
     let components: Vec<_> = path.iter().map(|path| path.to_string_lossy()).collect();
 
     let mut src_idx = None;
     for (i, c) in components.iter().enumerate() {
-        if c == "src" {
+        if c == "test" {
             src_idx = Some(i);
         }
     }
 
-    // Look for the last `src`:
+    // Look for the last `test`:
     if let Some(src_idx) = src_idx {
-        // Before `src` comes the name of the crate - let's include that:
+        // Before `test` comes the name of the crate - let's include that:
         let first_index = src_idx.saturating_sub(1);
 
         let mut output = components[first_index].to_string();
@@ -196,7 +196,7 @@ fn shorten_source_file_path(path: &std::path::Path) -> String {
         }
         output
     } else {
-        // No `src` directory found - weird!
+        // No `test` directory found - weird!
         path.display().to_string()
     }
 }
@@ -204,9 +204,9 @@ fn shorten_source_file_path(path: &std::path::Path) -> String {
 #[test]
 fn test_shorten_path() {
     for (before, after) in [
-        ("/Users/emilk/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.24.1/src/runtime/runtime.rs", "tokio-1.24.1/src/runtime/runtime.rs"),
-        ("crates/rerun/src/main.rs", "rerun/src/main.rs"),
-        ("/rustc/d5a82bbd26e1ad8b7401f6a718a9c57c96905483/library/core/src/ops/function.rs", "core/src/ops/function.rs"),
+        ("/Users/emilk/.cargo/registry/test/github.com-1ecc6299db9ec823/tokio-1.24.1/test/runtime/runtime.rs", "tokio-1.24.1/test/runtime/runtime.rs"),
+        ("crates/rerun/test/main.rs", "rerun/test/main.rs"),
+        ("/rustc/d5a82bbd26e1ad8b7401f6a718a9c57c96905483/library/core/test/ops/function.rs", "core/test/ops/function.rs"),
         ("/weird/path/file.rs", "/weird/path/file.rs"),
         ]
         {

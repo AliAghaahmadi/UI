@@ -15,9 +15,9 @@ members = [
     "file_explorer/*",
     "calculator/*",
     "Calc/*",
+    "wifi/*",
     "examples/*",
     "tests/*",
-
     "xtask",
 ]
 

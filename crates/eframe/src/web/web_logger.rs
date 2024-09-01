@@ -102,17 +102,17 @@ mod console {
 /// Shorten a path to a Rust source file.
 ///
 /// Example input:
-/// * `/Users/emilk/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.24.1/src/runtime/runtime.rs`
-/// * `crates/rerun/src/main.rs`
-/// * `/rustc/d5a82bbd26e1ad8b7401f6a718a9c57c96905483/library/core/src/ops/function.rs`
+/// * `/Users/emilk/.cargo/registry/test/github.com-1ecc6299db9ec823/tokio-1.24.1/test/runtime/runtime.rs`
+/// * `crates/rerun/test/main.rs`
+/// * `/rustc/d5a82bbd26e1ad8b7401f6a718a9c57c96905483/library/core/test/ops/function.rs`
 ///
 /// Example output:
-/// * `tokio-1.24.1/src/runtime/runtime.rs`
-/// * `rerun/src/main.rs`
-/// * `core/src/ops/function.rs`
+/// * `tokio-1.24.1/test/runtime/runtime.rs`
+/// * `rerun/test/main.rs`
+/// * `core/test/ops/function.rs`
 #[allow(dead_code)] // only used on web and in tests
 fn shorten_file_path(file_path: &str) -> &str {
-    if let Some(i) = file_path.rfind("/src/") {
+    if let Some(i) = file_path.rfind("/test/") {
         if let Some(prev_slash) = file_path[..i].rfind('/') {
             &file_path[prev_slash + 1..]
         } else {
@@ -126,9 +126,9 @@ fn shorten_file_path(file_path: &str) -> &str {
 #[test]
 fn test_shorten_file_path() {
     for (before, after) in [
-        ("/Users/emilk/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.24.1/src/runtime/runtime.rs", "tokio-1.24.1/src/runtime/runtime.rs"),
-        ("crates/rerun/src/main.rs", "rerun/src/main.rs"),
-        ("/rustc/d5a82bbd26e1ad8b7401f6a718a9c57c96905483/library/core/src/ops/function.rs", "core/src/ops/function.rs"),
+        ("/Users/emilk/.cargo/registry/test/github.com-1ecc6299db9ec823/tokio-1.24.1/test/runtime/runtime.rs", "tokio-1.24.1/test/runtime/runtime.rs"),
+        ("crates/rerun/test/main.rs", "rerun/test/main.rs"),
+        ("/rustc/d5a82bbd26e1ad8b7401f6a718a9c57c96905483/library/core/test/ops/function.rs", "core/test/ops/function.rs"),
         ("/weird/path/file.rs", "/weird/path/file.rs"),
         ]
     {

@@ -1,5 +1,4 @@
 use eframe::egui;
-use eframe::egui::{Context, Window};
 
 mod explorer; // Import the file_browser module
 
@@ -13,7 +12,7 @@ fn main() -> eframe::Result {
         "File Browser",
         options,
         Box::new(|cc| {
-            cc.egui_ctx.set_visuals(egui::Visuals::dark());
+            cc.egui_ctx.set_visuals(egui::Visuals::light());
             Ok(Box::<explorer::FileBrowserApp>::default())
         }),
     )

@@ -49,6 +49,12 @@ pub enum Key {
     /// `?`
     Questionmark,
 
+    /// '('
+    OpenParenthesis,
+
+    /// '('
+    CloseParenthesis,
+
     // `[`
     OpenBracket,
 
@@ -57,6 +63,9 @@ pub enum Key {
 
     /// \`, also known as "backquote" or "grave"
     Backtick,
+
+    /// '*'
+    Asterisk,
 
     /// `-`
     Minus,
@@ -175,7 +184,7 @@ pub enum Key {
     F34,
     F35,
     // When adding keys, remember to also update:
-    // * crates/egui-winit/src/lib.rs
+    // * crates/egui-winit/test/lib.rs
     // * Key::ALL
     // * Key::from_name
     // You should test that it works using the "Input Event History" window in the egui demo app.
@@ -211,8 +220,11 @@ impl Key {
         Self::Minus,
         Self::Period,
         Self::Plus,
+        Self::Asterisk,
         Self::Equals,
         Self::Semicolon,
+        Self::OpenParenthesis,
+        Self::CloseParenthesis,
         Self::OpenBracket,
         Self::CloseBracket,
         Self::Backtick,
@@ -335,12 +347,15 @@ impl Key {
             "-" | "−" | "Minus" => Self::Minus,
             "." | "Period" => Self::Period,
             "+" | "Plus" => Self::Plus,
+            "*" | "Asterisk" => Self::Asterisk,
             "=" | "Equal" | "Equals" | "NumpadEqual" => Self::Equals,
             ";" | "Semicolon" => Self::Semicolon,
             "\\" | "Backslash" => Self::Backslash,
             "/" | "Slash" => Self::Slash,
             "|" | "Pipe" => Self::Pipe,
             "?" | "Questionmark" => Self::Questionmark,
+            "(" | "OpenParenthesis" => Self::OpenParenthesis,
+            ")" | "CloseParenthesis" => Self::CloseParenthesis,
             "[" | "OpenBracket" => Self::OpenBracket,
             "]" | "CloseBracket" => Self::CloseBracket,
             "`" | "Backtick" | "Backquote" | "Grave" => Self::Backtick,
@@ -438,6 +453,7 @@ impl Key {
             Self::Colon => ":",
             Self::Comma => ",",
             Self::Minus => crate::MINUS_CHAR_STR,
+            Self::Asterisk => "*",
             Self::Period => ".",
             Self::Plus => "+",
             Self::Equals => "=",
@@ -446,6 +462,8 @@ impl Key {
             Self::Slash => "/",
             Self::Pipe => "|",
             Self::Questionmark => "?",
+            Self::OpenParenthesis => "(",
+            Self::CloseParenthesis => ")",
             Self::OpenBracket => "[",
             Self::CloseBracket => "]",
             Self::Backtick => "`",
@@ -482,9 +500,12 @@ impl Key {
             Self::Colon => "Colon",
             Self::Comma => "Comma",
             Self::Minus => "Minus",
+            Self::Asterisk => "Asterisk",
             Self::Period => "Period",
             Self::Plus => "Plus",
             Self::Equals => "Equals",
+            Self::OpenParenthesis => "OpenParenthesis",
+            Self::CloseParenthesis => "CloseParenthesis",
             Self::Semicolon => "Semicolon",
             Self::Backslash => "Backslash",
             Self::Slash => "Slash",
