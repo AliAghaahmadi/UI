@@ -1,7 +1,6 @@
 use egui::Button;
-use env_logger::fmt::style::AnsiColor::Black;
 use eframe::epaint::Color32;
-use egui::{vec2, RichText, Rounding};
+use egui::vec2;
 
 pub struct MainApp {
     wifi_open: bool,
