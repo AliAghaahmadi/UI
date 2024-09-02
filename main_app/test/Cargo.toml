@@ -1,9 +1,15 @@
 [package]
-name = "wifi"
+name = "main_app"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.76"
 publish = false
+
+[package.metadata.bundle]
+name = "Main App"
+identifier = "com.example.fileexplorer"
+icon = ["./data/icon.png"]
+targets = ["x86_64-apple-darwin"]
 
 [lints]
 workspace = true
@@ -17,6 +23,7 @@ eframe = { workspace = true, features = [
 
 # For image support:
 egui_extras = { workspace = true, features = ["default", "image"] }
+egui = { workspace = true }
 
 env_logger = { version = "0.11.5", default-features = false, features = [
     "auto-color",
@@ -24,4 +31,3 @@ env_logger = { version = "0.11.5", default-features = false, features = [
 ] }
 tokio = { version = "1", features = ["full"] }
 regex = "1.10.6"
-pnet = "0.35.0"

@@ -14,7 +14,7 @@ members = [
     "crates/epaint_default_fonts",
     "file_explorer/*",
     "calculator/*",
-    "Calc/*",
+    "main_app/*",
     "wifi/*",
     "examples/*",
     "tests/*",

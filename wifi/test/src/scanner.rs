@@ -2,7 +2,6 @@ use eframe::egui;
 use egui_extras::TableBuilder;
 use regex::Regex;
 use eframe::egui::{popup_below_widget, vec2, Button, Id, PopupCloseBehavior};
-use std::env;
 
 pub struct WifiNetwork {
     pub address: String,
@@ -19,7 +18,7 @@ pub struct WifiNetwork {
 
 pub fn parse_wifi_scan_output(output: &str) -> Vec<WifiNetwork> {
     let mut networks = Vec::new();
-    let cells = output.split("\n\n"); // Split by double newlines for different platforms
+    let cells = output.split("Cell").skip(1);
 
     // Regular expressions to capture details
     let address_re = Regex::new(r"Address:\s+([\w:]+)").unwrap();
@@ -29,8 +28,13 @@ pub fn parse_wifi_scan_output(output: &str) -> Vec<WifiNetwork> {
     let signal_level_re = Regex::new(r"Signal level=(-?\d+) dBm").unwrap();
     let encryption_key_re = Regex::new(r"Encryption key:(\w+)").unwrap();
     let essid_re = Regex::new(r#"ESSID:"([^"]+)""#).unwrap();
+
+    // Regex to capture the bit rates section
     let bit_rates_re = Regex::new(r"Bit Rates:([\s\S]*?)(\n[A-Z]|$)").unwrap();
+
+    // Regex to capture the extra section
     let extra_re = Regex::new(r"Extra:([\s\S]*?)(\n[A-Z]|$)").unwrap();
+
     let mode_re = Regex::new(r"Mode:(\w+)").unwrap();
 
     let default = "Not found".to_string();
@@ -64,17 +68,29 @@ pub fn parse_wifi_scan_output(output: &str) -> Vec<WifiNetwork> {
             .map(|caps| caps.get(1).map_or(default.clone(), |m| m.as_str().to_string()))
             .unwrap_or(default.clone());
 
+        // Capture bit rates and handle multiline content
         let bit_rates = bit_rates_re.captures(cell)
             .map(|caps| {
                 let bit_rates_str = caps.get(1).map_or("", |m| m.as_str().trim());
-                bit_rates_str.replace("\n", " ").replace("  ", " ").trim().to_string()
+                // Remove newlines and extra spaces
+                bit_rates_str
+                    .replace("\n", " ")
+                    .replace("  ", " ")
+                    .trim()
+                    .to_string()
             })
             .unwrap_or(default.clone());
 
+        // Capture extra and handle multiline content
         let extra = extra_re.captures(cell)
             .map(|caps| {
                 let extra_str = caps.get(1).map_or("", |m| m.as_str().trim());
-                extra_str.replace("\n", " ").replace("  ", " ").trim().to_string()
+                // Clean up the captured extra field
+                extra_str
+                    .replace("\n", " ")
+                    .replace("  ", " ")
+                    .trim()
+                    .to_string()
             })
             .unwrap_or(default.clone());
 
@@ -98,6 +114,7 @@ pub fn parse_wifi_scan_output(output: &str) -> Vec<WifiNetwork> {
 
     networks
 }
+
 
 // Function to display WiFi networks using egui and return if the table is not empty
 pub fn display_wifi_networks(ui: &mut egui::Ui, networks: &[WifiNetwork]) -> bool {
