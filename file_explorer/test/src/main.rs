@@ -1,6 +1,9 @@
 use eframe::egui;
+use crate::explorer::load_style_from_file;
 
-mod explorer; // Import the file_browser module
+mod explorer;
+mod list;
+// Import the file_browser module
 
 fn main() -> eframe::Result {
     let options = eframe::NativeOptions {

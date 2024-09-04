@@ -1,3 +1,4 @@
+use crate::egui::Button;
 use eframe::egui;
 use rayon::prelude::*;
 use std::fs;
@@ -5,9 +6,8 @@ use std::fs::metadata;
 use std::path::{Path, PathBuf};
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
-use eframe::egui::{popup_above_or_below_widget, AboveOrBelow, Id, PopupCloseBehavior};
-use eframe::epaint::Color32;
-use egui::{vec2, RichText, TextEdit};
+use egui::{Color32, Context, Style, TextEdit, Ui};
+use crate::list::list_explorer;
 
 #[derive(Debug, Clone)]
 pub struct Folder {
@@ -54,6 +54,8 @@ pub struct FileBrowserApp {
     pub selected: File,
     pub search: String,
     pub previous_search: String,
+    pub selected_option: Option<usize>,
+    pub settings: bool,
 }
 
 impl Default for FileBrowserApp {
@@ -71,6 +73,8 @@ impl Default for FileBrowserApp {
             selected: File::default(),
             search: String::new(),
             previous_search: String::new(),
+            selected_option: None,
+            settings: false,
         };
         app.update_directory_list(&start_path);
         app
@@ -112,7 +116,7 @@ fn search_in_directory_parallel(dir: &Path, search_term: &str) -> Vec<PathBuf> {
 }
 
 impl FileBrowserApp {
-    fn update_directory_list(&mut self, path: &str) {
+    pub(crate) fn update_directory_list(&mut self, path: &str) {
         self.files.clear();
         self.directories.clear();
 
@@ -152,6 +156,71 @@ impl FileBrowserApp {
             }
         }
     }
+
+    pub fn directory_size(folder: &Folder) {
+        let folder_path = folder.dir.clone();
+        let calculating = folder.calculating.clone();
+        let error = folder.error.clone();
+        let size = folder.size.clone();
+
+        thread::spawn(move || {
+            *calculating.lock().unwrap() = true;
+            *error.lock().unwrap() = None;
+
+            let result = Self::calculate_size(&folder_path);
+
+            *calculating.lock().unwrap() = false;
+            match result {
+                Ok(s) => *size.lock().unwrap() = Some(s),
+                Err(e) => *error.lock().unwrap() = Some(e),
+            }
+        });
+    }
+
+    pub fn calculate_size(path: &str) -> Result<u64, String> {
+        let mut total_size = 0;
+
+        for entry in fs::read_dir(path).map_err(|e| e.to_string())? {
+            let entry = entry.map_err(|e| e.to_string())?;
+            let path = entry.path();
+
+            if path.is_dir() {
+                total_size += Self::calculate_size(path.to_str().ok_or("Invalid path")?)?;
+            } else {
+                total_size += metadata(&path).map_err(|e| e.to_string())?.len();
+            }
+        }
+
+        Ok(total_size)
+    }
+
+    pub fn format_size(size: Option<u64>) -> String {
+        match size {
+            Some(bytes) => {
+                if bytes < 1024 {
+                    format!("{} B", bytes)
+                } else if bytes < 1024 * 1024 {
+                    format!("{:.1} KB", bytes as f64 / 1024.0)
+                } else if bytes < 1024 * 1024 * 1024 {
+                    format!("{:.1} MB", bytes as f64 / (1024.0 * 1024.0))
+                } else {
+                    format!("{:.1} GB", bytes as f64 / (1024.0 * 1024.0 * 1024.0))
+                }
+            }
+            None => "Unknown".to_string(),
+        }
+    }
+
+    pub fn extension_icon(extension: &str) -> Option<&'static str> {
+        match extension.to_lowercase().as_str() {
+            "txt" => Some("📄"),
+            "jpg" | "jpeg" | "png" => Some("🖼"),
+            "mp3" | "wav" => Some("🎵"),
+            "pdf" => Some("📄"),
+            "zip" => Some("📦"),
+            _ => Some("❓"),
+        }
+    }
 }
 
 fn get_parent_directories(path: &Path) -> Vec<PathBuf> {
@@ -171,8 +240,31 @@ fn get_parent_directories(path: &Path) -> Vec<PathBuf> {
     parents
 }
 
+fn save_style_to_file(ctx: &Context) -> std::io::Result<()> {
+    let style_json = serde_json::to_string_pretty(&ctx.style()).expect("Failed to serialize style");
+    fs::write("example.json", style_json)
+}
+
+pub fn load_style_from_file(ctx: &Context) -> std::io::Result<()> {
+    let style_json = fs::read_to_string("example.json")?;
+    let new_style: Style = serde_json::from_str(&style_json).expect("Failed to deserialize style");
+    ctx.set_style(new_style);
+    Ok(())
+}
+
 impl eframe::App for FileBrowserApp {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    fn update(&mut self, ctx: &Context, _frame: &mut eframe::Frame) {
+        if self.settings {
+            egui::Window::new("🔧 Settings")
+                .vscroll(true)
+                .show(ctx, |ui| {
+                    ctx.settings_ui(ui);
+                    if ui.button("Save").clicked() { save_style_to_file(ctx).expect("TODO: panic message"); }
+                });
+        }
+
+        else { load_style_from_file(&*ctx).expect("TODO: panic message"); }
+
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("File Browser");
 
@@ -202,207 +294,43 @@ impl eframe::App for FileBrowserApp {
                         }
                     }
 
-                    let text = ui.add(TextEdit::singleline(&mut (self.search)).desired_width(50.0));
-                    text.request_focus();
+                    if self.current_path != "/"
+                    {
+                        let text = ui.add(TextEdit::singleline(&mut (self.search)).desired_width(50.0));
 
-                    if self.previous_search != self.search {
-                        if ui.button("🔎").clicked() {
-                            self.update_directory_list(&self.current_path.clone());
-                            self.previous_search = self.search.clone();
+                        if self.previous_search != self.search {
+                            if ui.button("🔎").clicked() || text.clicked_elsewhere() {
+                                self.update_directory_list(&self.current_path.clone());
+                                self.previous_search = self.search.clone();
+                            }
                         }
                     }
+
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        /*if ui.radio(self.selected_option == Some(0), "Option 1").clicked() { self.selected_option = Some(0); }
+                        if ui.radio(self.selected_option == Some(1), "Option 2").clicked() { self.selected_option = Some(1); }
+                        if ui.radio(self.selected_option == Some(2), "Option 3").clicked() { self.selected_option = Some(2); }*/
+
+                        toggle_button("Settings", &mut self.settings, ui);
+                    });
                 });
             });
 
             ui.separator();
 
-            let mut new_path = None;
-
-            let combined_table = egui_extras::TableBuilder::new(ui)
-                .striped(true)
-                .resizable(true)
-                .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-                .column(egui_extras::Column::initial(100.0).at_least(25.0))
-                .min_scrolled_height(0.0);
-
-            combined_table
-                .header(20.0, |mut header| {
-                    header.col(|ui| {
-                        ui.strong("Name");
-                    });
-                })
-                .body(|mut body| {
-                    for directory in &mut self.directories {
-                        body.row(20.0, |mut row| {
-                            row.col(|ui| {
-                                ui.label("📁");
-                                let dir = ui.button(&directory.name);
-
-                                if dir.clicked() {
-                                    new_path = Some(directory.dir.clone());
-                                }
-
-                                let id = Id::new(format!("1 {}", &directory.name));
-
-                                if dir.secondary_clicked() {
-                                    ui.memory_mut(|mem| mem.toggle_popup(id));
-                                }
-
-                                popup_above_or_below_widget(
-                                    ui,
-                                    id,
-                                    &dir,
-                                    AboveOrBelow::Above,
-                                    PopupCloseBehavior::CloseOnClickOutside,
-                                    |ui| {
-                                        ui.set_min_width(100.0);
-                                        let size = directory.size.lock().unwrap().clone();
-                                        let calculating = *directory.calculating.lock().unwrap();
-                                        let error = directory.error.lock().unwrap().clone();
-
-                                        ui.vertical(|ui| {
-                                            ui.horizontal(|ui| {
-                                                ui.label("Name: ");
-                                                ui.strong(directory.clone().name);
-                                            });
-                                            if error.is_some() {
-                                                ui.horizontal(|ui| {
-                                                    ui.label("Error: ");
-                                                    ui.label(RichText::new("Something Went Wrong").color(Color32::RED));
-                                                });
-                                            } else if size.is_none() && !calculating {
-                                                ui.horizontal(|ui| {
-                                                    ui.label("Size: ");
-                                                    directory_size(directory);
-                                                });
-                                            } else if calculating {
-                                                ui.horizontal(|ui| {
-                                                    ui.label("Size: ");
-                                                    ui.add(egui::Spinner::new());
-                                                    ui.label("Calculating...");
-                                                });
-                                            } else {
-                                                ui.horizontal(|ui| {
-                                                    ui.label("Size: ");
-                                                    ui.label(format_size(size));
-                                                });
-                                            }
-                                        })
-                                    },
-                                );
-                            });
-                        });
-                    }
-
-                    for file in &self.files {
-                        body.row(20.0, |mut row| {
-                            row.col(|ui| {
-                                let path = Path::new(&file.name);
-                                if path.extension() != None
-                                { ui.label(extension_icon(path.extension().unwrap().to_str().unwrap()).unwrap().to_string()); }
-                                else { ui.label("❓"); }
-                                let file_btn = ui.button(&file.name);
-
-                                if file_btn.clicked() {
-                                    new_path = Some(file.dir.clone());
-                                }
-
-                                let id = Id::new(format!("2 {}", &file.name));
-
-                                if file_btn.secondary_clicked() {
-                                    ui.memory_mut(|mem| mem.toggle_popup(id));
-                                }
-
-                                popup_above_or_below_widget(
-                                    ui,
-                                    id,
-                                    &file_btn,
-                                    AboveOrBelow::Above,
-                                    PopupCloseBehavior::CloseOnClickOutside,
-                                    |ui| {
-                                        ui.set_min_width(100.0);
-                                        if let Some(size) = file.size {
-                                            ui.label(format!("Size: {}", format_size(Some(size))));
-                                        } else {
-                                            ui.label("Size unknown");
-                                        }
-                                    },
-                                );
-                            });
-                        });
-                    }
-                });
-
-            if let Some(path) = new_path {
-                self.current_path = path;
-                self.search = "".to_string();
-                self.update_directory_list(&self.current_path.clone());
-            }
+            list_explorer(self, ui);
         });
     }
 }
 
-fn directory_size(folder: &Folder) {
-    let folder_path = folder.dir.clone();
-    let calculating = folder.calculating.clone();
-    let error = folder.error.clone();
-    let size = folder.size.clone();
+fn toggle_button(text: &str, toggle: &mut bool, ui: &mut Ui) {
+    let color = if *toggle {
+        ui.style().visuals.selection.bg_fill
+    } else {
+        ui.style().visuals.widgets.inactive.weak_bg_fill
+    };
 
-    thread::spawn(move || {
-        *calculating.lock().unwrap() = true;
-        *error.lock().unwrap() = None;
-
-        let result = calculate_size(&folder_path);
-
-        *calculating.lock().unwrap() = false;
-        match result {
-            Ok(s) => *size.lock().unwrap() = Some(s),
-            Err(e) => *error.lock().unwrap() = Some(e),
-        }
-    });
-}
-
-fn calculate_size(path: &str) -> Result<u64, String> {
-    let mut total_size = 0;
-
-    for entry in fs::read_dir(path).map_err(|e| e.to_string())? {
-        let entry = entry.map_err(|e| e.to_string())?;
-        let path = entry.path();
-
-        if path.is_dir() {
-            total_size += calculate_size(path.to_str().ok_or("Invalid path")?)?;
-        } else {
-            total_size += metadata(&path).map_err(|e| e.to_string())?.len();
-        }
-    }
-
-    Ok(total_size)
-}
-
-fn format_size(size: Option<u64>) -> String {
-    match size {
-        Some(bytes) => {
-            if bytes < 1024 {
-                format!("{} B", bytes)
-            } else if bytes < 1024 * 1024 {
-                format!("{:.1} KB", bytes as f64 / 1024.0)
-            } else if bytes < 1024 * 1024 * 1024 {
-                format!("{:.1} MB", bytes as f64 / (1024.0 * 1024.0))
-            } else {
-                format!("{:.1} GB", bytes as f64 / (1024.0 * 1024.0 * 1024.0))
-            }
-        }
-        None => "Unknown".to_string(),
-    }
-}
-
-fn extension_icon(extension: &str) -> Option<&'static str> {
-    match extension.to_lowercase().as_str() {
-        "txt" => Some("📄"),
-        "jpg" | "jpeg" | "png" => Some("🖼"),
-        "mp3" | "wav" => Some("🎵"),
-        "pdf" => Some("📄"),
-        "zip" => Some("📦"),
-        _ => Some("❓"),
+    if ui.add(Button::new(text).fill(color)).clicked() {
+        *toggle = !*toggle;
     }
 }

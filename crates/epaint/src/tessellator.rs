@@ -30,32 +30,32 @@ mod precomputed_vertices {
 
     pub const CIRCLE_8: [Vec2; 9] = [
         vec2(1.000000, 0.000000),
-        vec2(0.707107, 0.707107),
+        vec2(std::f32::consts::FRAC_1_SQRT_2, std::f32::consts::FRAC_1_SQRT_2),
         vec2(0.000000, 1.000000),
-        vec2(-0.707107, 0.707107),
+        vec2(-std::f32::consts::FRAC_1_SQRT_2, std::f32::consts::FRAC_1_SQRT_2),
         vec2(-1.000000, 0.000000),
-        vec2(-0.707107, -0.707107),
+        vec2(-std::f32::consts::FRAC_1_SQRT_2, -std::f32::consts::FRAC_1_SQRT_2),
         vec2(0.000000, -1.000000),
-        vec2(0.707107, -0.707107),
+        vec2(std::f32::consts::FRAC_1_SQRT_2, -std::f32::consts::FRAC_1_SQRT_2),
         vec2(1.000000, 0.000000),
     ];
 
     pub const CIRCLE_16: [Vec2; 17] = [
         vec2(1.000000, 0.000000),
         vec2(0.923880, 0.382683),
-        vec2(0.707107, 0.707107),
+        vec2(std::f32::consts::FRAC_1_SQRT_2, std::f32::consts::FRAC_1_SQRT_2),
         vec2(0.382683, 0.923880),
         vec2(0.000000, 1.000000),
         vec2(-0.382684, 0.923880),
-        vec2(-0.707107, 0.707107),
+        vec2(-std::f32::consts::FRAC_1_SQRT_2, std::f32::consts::FRAC_1_SQRT_2),
         vec2(-0.923880, 0.382683),
         vec2(-1.000000, 0.000000),
         vec2(-0.923880, -0.382683),
-        vec2(-0.707107, -0.707107),
+        vec2(-std::f32::consts::FRAC_1_SQRT_2, -std::f32::consts::FRAC_1_SQRT_2),
         vec2(-0.382684, -0.923880),
         vec2(0.000000, -1.000000),
         vec2(0.382684, -0.923879),
-        vec2(0.707107, -0.707107),
+        vec2(std::f32::consts::FRAC_1_SQRT_2, -std::f32::consts::FRAC_1_SQRT_2),
         vec2(0.923880, -0.382683),
         vec2(1.000000, 0.000000),
     ];
@@ -65,7 +65,7 @@ mod precomputed_vertices {
         vec2(0.980785, 0.195090),
         vec2(0.923880, 0.382683),
         vec2(0.831470, 0.555570),
-        vec2(0.707107, 0.707107),
+        vec2(std::f32::consts::FRAC_1_SQRT_2, std::f32::consts::FRAC_1_SQRT_2),
         vec2(0.555570, 0.831470),
         vec2(0.382683, 0.923880),
         vec2(0.195090, 0.980785),
@@ -73,7 +73,7 @@ mod precomputed_vertices {
         vec2(-0.195090, 0.980785),
         vec2(-0.382683, 0.923880),
         vec2(-0.555570, 0.831470),
-        vec2(-0.707107, 0.707107),
+        vec2(-std::f32::consts::FRAC_1_SQRT_2, std::f32::consts::FRAC_1_SQRT_2),
         vec2(-0.831470, 0.555570),
         vec2(-0.923880, 0.382683),
         vec2(-0.980785, 0.195090),
@@ -81,7 +81,7 @@ mod precomputed_vertices {
         vec2(-0.980785, -0.195090),
         vec2(-0.923880, -0.382683),
         vec2(-0.831470, -0.555570),
-        vec2(-0.707107, -0.707107),
+        vec2(-std::f32::consts::FRAC_1_SQRT_2, -std::f32::consts::FRAC_1_SQRT_2),
         vec2(-0.555570, -0.831470),
         vec2(-0.382683, -0.923880),
         vec2(-0.195090, -0.980785),
@@ -89,7 +89,7 @@ mod precomputed_vertices {
         vec2(0.195090, -0.980785),
         vec2(0.382683, -0.923880),
         vec2(0.555570, -0.831470),
-        vec2(0.707107, -0.707107),
+        vec2(std::f32::consts::FRAC_1_SQRT_2, -std::f32::consts::FRAC_1_SQRT_2),
         vec2(0.831470, -0.555570),
         vec2(0.923880, -0.382683),
         vec2(0.980785, -0.195090),
@@ -105,7 +105,7 @@ mod precomputed_vertices {
         vec2(0.881921, 0.471397),
         vec2(0.831470, 0.555570),
         vec2(0.773010, 0.634393),
-        vec2(0.707107, 0.707107),
+        vec2(std::f32::consts::FRAC_1_SQRT_2, std::f32::consts::FRAC_1_SQRT_2),
         vec2(0.634393, 0.773010),
         vec2(0.555570, 0.831470),
         vec2(0.471397, 0.881921),
@@ -121,7 +121,7 @@ mod precomputed_vertices {
         vec2(-0.471397, 0.881921),
         vec2(-0.555570, 0.831470),
         vec2(-0.634393, 0.773010),
-        vec2(-0.707107, 0.707107),
+        vec2(-std::f32::consts::FRAC_1_SQRT_2, std::f32::consts::FRAC_1_SQRT_2),
         vec2(-0.773010, 0.634393),
         vec2(-0.831470, 0.555570),
         vec2(-0.881921, 0.471397),
@@ -137,7 +137,7 @@ mod precomputed_vertices {
         vec2(-0.881921, -0.471397),
         vec2(-0.831470, -0.555570),
         vec2(-0.773010, -0.634393),
-        vec2(-0.707107, -0.707107),
+        vec2(-std::f32::consts::FRAC_1_SQRT_2, -std::f32::consts::FRAC_1_SQRT_2),
         vec2(-0.634393, -0.773010),
         vec2(-0.555570, -0.831470),
         vec2(-0.471397, -0.881921),
@@ -153,7 +153,7 @@ mod precomputed_vertices {
         vec2(0.471397, -0.881921),
         vec2(0.555570, -0.831470),
         vec2(0.634393, -0.773010),
-        vec2(0.707107, -0.707107),
+        vec2(std::f32::consts::FRAC_1_SQRT_2, -std::f32::consts::FRAC_1_SQRT_2),
         vec2(0.773010, -0.634393),
         vec2(0.831470, -0.555570),
         vec2(0.881921, -0.471397),
@@ -181,7 +181,7 @@ mod precomputed_vertices {
         vec2(0.803208, 0.595699),
         vec2(0.773010, 0.634393),
         vec2(0.740951, 0.671559),
-        vec2(0.707107, 0.707107),
+        vec2(std::f32::consts::FRAC_1_SQRT_2, std::f32::consts::FRAC_1_SQRT_2),
         vec2(0.671559, 0.740951),
         vec2(0.634393, 0.773010),
         vec2(0.595699, 0.803208),
@@ -213,7 +213,7 @@ mod precomputed_vertices {
         vec2(-0.595699, 0.803208),
         vec2(-0.634393, 0.773010),
         vec2(-0.671559, 0.740951),
-        vec2(-0.707107, 0.707107),
+        vec2(-std::f32::consts::FRAC_1_SQRT_2, std::f32::consts::FRAC_1_SQRT_2),
         vec2(-0.740951, 0.671559),
         vec2(-0.773010, 0.634393),
         vec2(-0.803208, 0.595699),
@@ -245,7 +245,7 @@ mod precomputed_vertices {
         vec2(-0.803208, -0.595699),
         vec2(-0.773010, -0.634393),
         vec2(-0.740951, -0.671559),
-        vec2(-0.707107, -0.707107),
+        vec2(-std::f32::consts::FRAC_1_SQRT_2, -std::f32::consts::FRAC_1_SQRT_2),
         vec2(-0.671559, -0.740951),
         vec2(-0.634393, -0.773010),
         vec2(-0.595699, -0.803208),
@@ -277,7 +277,7 @@ mod precomputed_vertices {
         vec2(0.595699, -0.803208),
         vec2(0.634393, -0.773010),
         vec2(0.671559, -0.740951),
-        vec2(0.707107, -0.707107),
+        vec2(std::f32::consts::FRAC_1_SQRT_2, -std::f32::consts::FRAC_1_SQRT_2),
         vec2(0.740951, -0.671559),
         vec2(0.773010, -0.634393),
         vec2(0.803208, -0.595699),
@@ -454,20 +454,7 @@ impl Path {
             //
             // See https://github.com/emilk/egui/issues/1226
             const CUT_OFF_SHARP_CORNERS: bool = false;
-
-            let right_angle_length_sq = 0.5;
-            let sharper_than_a_right_angle = length_sq < right_angle_length_sq;
-            if CUT_OFF_SHARP_CORNERS && sharper_than_a_right_angle {
-                // cut off the sharp corner
-                let center_normal = normal.normalized();
-                let n0c = (n0 + center_normal) / 2.0;
-                let n1c = (n1 + center_normal) / 2.0;
-                self.add_point(points[i], n0c / n0c.length_sq());
-                self.add_point(points[i], n1c / n1c.length_sq());
-            } else {
-                // miter join
-                self.add_point(points[i], normal / length_sq);
-            }
+            self.add_point(points[i], normal / length_sq);
 
             n0 = n1;
         }
@@ -1163,8 +1150,6 @@ fn mul_color(color: Color32, factor: f32) -> Color32 {
 /// Converts [`Shape`]s into triangles ([`Mesh`]).
 ///
 /// For performance reasons it is smart to reuse the same [`Tessellator`].
-///
-/// See also [`tessellate_shapes`], a convenient wrapper around [`Tessellator`].
 #[derive(Clone)]
 pub struct Tessellator {
     pixels_per_point: f32,
@@ -1308,7 +1293,7 @@ impl Tessellator {
                 self.tessellate_ellipse(ellipse, out);
             }
             Shape::Mesh(mesh) => {
-                crate::profile_scope!("mesh");
+                profile_scope!("mesh");
 
                 if self.options.validate_meshes && !mesh.is_valid() {
                     debug_assert!(false, "Invalid Mesh in Shape::Mesh");
@@ -1537,7 +1522,7 @@ impl Tessellator {
             return;
         }
 
-        crate::profile_function!();
+        profile_function!();
 
         let PathShape {
             points,
@@ -1910,7 +1895,7 @@ impl Tessellator {
     /// A list of clip rectangles with matching [`Mesh`].
     #[allow(unused_mut)]
     pub fn tessellate_shapes(&mut self, mut shapes: Vec<ClippedShape>) -> Vec<ClippedPrimitive> {
-        crate::profile_function!();
+        profile_function!();
 
         #[cfg(feature = "rayon")]
         if self.options.parallel_tessellation {
@@ -1920,7 +1905,7 @@ impl Tessellator {
         let mut clipped_primitives: Vec<ClippedPrimitive> = Vec::default();
 
         {
-            crate::profile_scope!("tessellate");
+            profile_scope!("tessellate");
             for clipped_shape in shapes {
                 self.tessellate_clipped_shape(clipped_shape, &mut clipped_primitives);
             }
@@ -1957,7 +1942,7 @@ impl Tessellator {
     /// then replace the original shape with their tessellated meshes.
     #[cfg(feature = "rayon")]
     fn parallel_tessellation_of_large_shapes(&self, shapes: &mut [ClippedShape]) {
-        crate::profile_function!();
+        profile_function!();
 
         use rayon::prelude::*;
 
@@ -1987,7 +1972,7 @@ impl Tessellator {
             .enumerate()
             .filter(|(_, clipped_shape)| should_parallelize(&clipped_shape.shape))
             .map(|(index, clipped_shape)| {
-                crate::profile_scope!("tessellate_big_shape");
+                profile_scope!("tessellate_big_shape");
                 // TODO(emilk): reuse tessellator in a thread local
                 let mut tessellator = (*self).clone();
                 let mut mesh = Mesh::default();
@@ -1996,7 +1981,7 @@ impl Tessellator {
             })
             .collect();
 
-        crate::profile_scope!("distribute results", tessellated.len().to_string());
+        profile_scope!("distribute results", tessellated.len().to_string());
         for (index, mesh) in tessellated {
             shapes[index].shape = Shape::Mesh(mesh);
         }

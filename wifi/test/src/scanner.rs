@@ -143,7 +143,7 @@ pub fn display_wifi_networks(ui: &mut egui::Ui, networks: &[WifiNetwork]) -> boo
                     row.col(|ui| {
                         let response =  ui.button(check_name(&network.essid));
 
-                        let popup_id = Id::new(format!("popup_id {}", network.essid));
+                        let popup_id = Id::new(format!("{}/{}", network.address, network.essid));
 
                         if response.clicked() {
                             ui.memory_mut(|mem| mem.toggle_popup(popup_id));
@@ -155,24 +155,22 @@ pub fn display_wifi_networks(ui: &mut egui::Ui, networks: &[WifiNetwork]) -> boo
                             &response,
                             PopupCloseBehavior::CloseOnClickOutside,
                             |ui| {
-                                ui.horizontal(|ui|
-                                    {
-                                        if ui.add_sized(vec2(24.0, 24.0), Button::new("❌")).clicked() { ui.memory_mut(|mem| mem.close_popup()); };
-                                    });
+                                ui.horizontal(|ui| {
+                                    if ui.add_sized(vec2(10.0, 10.0), Button::new("❌")).clicked() { ui.memory_mut(|mem| mem.close_popup()); };
+                                });
 
-                                egui::ScrollArea::vertical().show(ui, |ui|
-                                    {
-                                        ui.set_max_width(300.0);
-                                        ui.label(format!("Frequency: {}", network.frequency));
-                                        ui.separator();
-                                        ui.label(format!("Encryption Key: {}", normalize_extra_text(&*network.encryption_key)));
-                                        ui.separator();
-                                        ui.label(format!("Channel: {}", normalize_extra_text(&*network.channel)));
-                                        ui.separator();
-                                        ui.label(format!("Bit Rates: {}", normalize_extra_text(&*network.bit_rates)));
-                                        ui.separator();
-                                        ui.label(format!("Extra: {}", normalize_extra_text(&*network.extra)));
-                                    })
+                                egui::ScrollArea::vertical().show(ui, |ui| {
+                                    ui.set_max_width(300.0);
+                                    ui.label(format!("Frequency: {}", network.frequency));
+                                    ui.separator();
+                                    ui.label(format!("Encryption Key: {}", normalize_extra_text(&*network.encryption_key)));
+                                    ui.separator();
+                                    ui.label(format!("Channel: {}", normalize_extra_text(&*network.channel)));
+                                    ui.separator();
+                                    ui.label(format!("Bit Rates: {}", normalize_extra_text(&*network.bit_rates)));
+                                    ui.separator();
+                                    ui.label(format!("Extra: {}", normalize_extra_text(&*network.extra)));
+                                })
                             },
                         );
                     });
