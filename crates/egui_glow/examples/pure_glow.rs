@@ -71,7 +71,7 @@ impl GlutinWindowContext {
         log::debug!("raw window handle: {:?}", raw_window_handle);
         let context_attributes =
             glutin::context::ContextAttributesBuilder::new().build(raw_window_handle);
-        // by default, glutin will try to create a core opengl context. but, if it is not available, try to create a gl-es context using this fallback attributes
+        // by default, glutin will try to create a fend_core opengl context. but, if it is not available, try to create a gl-es context using this fallback attributes
         let fallback_context_attributes = glutin::context::ContextAttributesBuilder::new()
             .with_context_api(glutin::context::ContextApi::Gles(None))
             .build(raw_window_handle);

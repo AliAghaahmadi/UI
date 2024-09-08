@@ -104,12 +104,12 @@ mod console {
 /// Example input:
 /// * `/Users/emilk/.cargo/registry/test/github.com-1ecc6299db9ec823/tokio-1.24.1/test/runtime/runtime.rs`
 /// * `crates/rerun/test/main.rs`
-/// * `/rustc/d5a82bbd26e1ad8b7401f6a718a9c57c96905483/library/core/test/ops/function.rs`
+/// * `/rustc/d5a82bbd26e1ad8b7401f6a718a9c57c96905483/library/fend_core/test/ops/function.rs`
 ///
 /// Example output:
 /// * `tokio-1.24.1/test/runtime/runtime.rs`
 /// * `rerun/test/main.rs`
-/// * `core/test/ops/function.rs`
+/// * `fend_core/test/ops/function.rs`
 #[allow(dead_code)] // only used on web and in tests
 fn shorten_file_path(file_path: &str) -> &str {
     if let Some(i) = file_path.rfind("/test/") {
@@ -128,7 +128,7 @@ fn test_shorten_file_path() {
     for (before, after) in [
         ("/Users/emilk/.cargo/registry/test/github.com-1ecc6299db9ec823/tokio-1.24.1/test/runtime/runtime.rs", "tokio-1.24.1/test/runtime/runtime.rs"),
         ("crates/rerun/test/main.rs", "rerun/test/main.rs"),
-        ("/rustc/d5a82bbd26e1ad8b7401f6a718a9c57c96905483/library/core/test/ops/function.rs", "core/test/ops/function.rs"),
+        ("/rustc/d5a82bbd26e1ad8b7401f6a718a9c57c96905483/library/fend_core/test/ops/function.rs", "fend_core/test/ops/function.rs"),
         ("/weird/path/file.rs", "/weird/path/file.rs"),
         ]
     {

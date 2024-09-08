@@ -501,7 +501,7 @@ fn ui_stack_demo(ui: &mut Ui) {
     ui.horizontal_wrapped(|ui| {
         ui.label("The");
         ui.code("egui::Ui");
-        ui.label("core type is typically deeply nested in");
+        ui.label("fend_core type is typically deeply nested in");
         ui.code("egui");
         ui.label(
             "applications. To provide context to nested code, it maintains a stack \

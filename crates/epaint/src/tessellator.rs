@@ -453,7 +453,6 @@ impl Path {
             // and then only expand during feathering.
             //
             // See https://github.com/emilk/egui/issues/1226
-            const CUT_OFF_SHARP_CORNERS: bool = false;
             self.add_point(points[i], normal / length_sq);
 
             n0 = n1;

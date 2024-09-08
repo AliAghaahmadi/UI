@@ -148,7 +148,7 @@ fn supports_vao(gl: &glow::Context) -> bool {
             true
         }
     } else {
-        // from OpenGL 3 vao into core
+        // from OpenGL 3 vao into fend_core
         if version_string.starts_with('2') {
             // I found APPLE_vertex_array_object , GL_ATI_vertex_array_object ,ARB_vertex_array_object
             // but APPLE's and ATI's very old extension.

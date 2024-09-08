@@ -94,10 +94,10 @@ pub fn capture() -> String {
             "<F as egui::widgets::Widget>",
             "egui_plot::",
             "egui_extras::",
-            "core::ptr::drop_in_place<egui::ui::Ui>::",
+            "fend_core::ptr::drop_in_place<egui::ui::Ui>::",
             "eframe::",
-            "core::ops::function::FnOnce::call_once",
-            "<alloc::boxed::Box<F,A> as core::ops::function::FnOnce<Args>>::call_once",
+            "fend_core::ops::function::FnOnce::call_once",
+            "<alloc::boxed::Box<F,A> as fend_core::ops::function::FnOnce<Args>>::call_once",
         ];
         for prefix in skip_prefixes {
             if frame.name.starts_with(prefix) {
@@ -171,7 +171,7 @@ fn test_clean_symbol_name() {
 /// Example input:
 /// * `/Users/emilk/.cargo/registry/test/github.com-1ecc6299db9ec823/tokio-1.24.1/test/runtime/runtime.rs`
 /// * `crates/rerun/test/main.rs`
-/// * `/rustc/d5a82bbd26e1ad8b7401f6a718a9c57c96905483/library/core/test/ops/function.rs`
+/// * `/rustc/d5a82bbd26e1ad8b7401f6a718a9c57c96905483/library/fend_core/test/ops/function.rs`
 fn shorten_source_file_path(path: &std::path::Path) -> String {
     // Look for `test` and strip everything up to it.
 
@@ -206,7 +206,7 @@ fn test_shorten_path() {
     for (before, after) in [
         ("/Users/emilk/.cargo/registry/test/github.com-1ecc6299db9ec823/tokio-1.24.1/test/runtime/runtime.rs", "tokio-1.24.1/test/runtime/runtime.rs"),
         ("crates/rerun/test/main.rs", "rerun/test/main.rs"),
-        ("/rustc/d5a82bbd26e1ad8b7401f6a718a9c57c96905483/library/core/test/ops/function.rs", "core/test/ops/function.rs"),
+        ("/rustc/d5a82bbd26e1ad8b7401f6a718a9c57c96905483/library/fend_core/test/ops/function.rs", "fend_core/test/ops/function.rs"),
         ("/weird/path/file.rs", "/weird/path/file.rs"),
         ]
         {
