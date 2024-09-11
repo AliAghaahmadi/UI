@@ -7,4 +7,4 @@ Also check out the official docs at <https://docs.rs/egui> and <https://docs.rs/
 
 Note that all the examples on `master` are for the latest `master` version of `egui`.
 
-If you want to look for examples for a specific version of egui, go to that tag, e.g. <https://github.com/emilk/egui/tree/latest/examples>.
+If you want to look for examples for a specific version of egui, go to that tag, _e.g. <https://github.com/emilk/egui/tree/latest/examples>.

@@ -210,7 +210,7 @@ def add_to_changelog_file(crate: str, content: str, version: str) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate a changelog.")
-    parser.add_argument("--commit-range", help="e.g. 0.24.0..HEAD", required=True)
+    parser.add_argument("--commit-range", help="_e.g. 0.24.0..HEAD", required=True)
     parser.add_argument("--write", help="Write into the different changelogs?", action="store_true")
     parser.add_argument("--version", help="What release is this?")
     args = parser.parse_args()

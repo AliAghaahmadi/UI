@@ -79,7 +79,7 @@ While using an immediate mode gui is simple, implementing one is a lot more tric
 * Add blank lines around all `fn`, `struct`, `enum`, etc
 * `// Comment like this.` and not `//like this`
 * Use `TODO` instead of `FIXME`
-* Add your github handle to the `TODO`:s you write, e.g: `TODO(emilk): clean this up`
+* Add your github handle to the `TODO`:s you write, _e.g: `TODO(emilk): clean this up`
 * Avoid `unsafe`
 * Avoid `unwrap` and any other code that can cause panics
 * Use good names for everything
@@ -90,7 +90,7 @@ While using an immediate mode gui is simple, implementing one is a lot more tric
 * When importing a `trait` to use it's trait methods, do this: `use Trait as _;`. That lets the reader know why you imported it, even though it seems unused
 * Avoid double negatives
 * Flip `if !condition {} else {}`
-* Sets of things should be lexicographically sorted (e.g. crate dependencies in `Cargo.toml`)
+* Sets of things should be lexicographically sorted (_e.g. crate dependencies in `Cargo.toml`)
 * Break the above rules when it makes sense
 
 

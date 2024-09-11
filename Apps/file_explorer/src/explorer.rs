@@ -242,11 +242,11 @@ fn get_parent_directories(path: &Path) -> Vec<PathBuf> {
 
 fn save_style_to_file(ctx: &Context) -> std::io::Result<()> {
     let style_json = serde_json::to_string_pretty(&ctx.style()).expect("Failed to serialize style");
-    fs::write("example.json", style_json)
+    fs::write("../example.json", style_json)
 }
 
 pub fn load_style_from_file(ctx: &Context) -> std::io::Result<()> {
-    let style_json = fs::read_to_string("example.json")?;
+    let style_json = fs::read_to_string("/home/ali/Projects/UI/example.json")?;
     let new_style: Style = serde_json::from_str(&style_json).expect("Failed to deserialize style");
     ctx.set_style(new_style);
     Ok(())

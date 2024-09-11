@@ -19,42 +19,43 @@
       <sourceFolder url="file://$MODULE_DIR$/crates/epaint/benches" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/crates/epaint/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/epaint_default_fonts/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/examples/confirm_exit/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/examples/custom_3d_glow/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/examples/custom_font/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/examples/custom_font_style/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/examples/custom_keypad/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/examples/custom_window_frame/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/examples/file_dialog/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/examples/hello_world/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/examples/hello_world_par/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/examples/hello_world_simple/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/examples/images/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/examples/keyboard_events/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/examples/multiple_viewports/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/examples/popups/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/examples/puffin_profiler/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/examples/screenshot/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/examples/serial_windows/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/examples/user_attention/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/tests/test_inline_glow_paint/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/tests/test_size_pass/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/tests/test_ui_stack/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/tests/test_viewports/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/xtask/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/examples/custom_keyboard/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/MainApp/test/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/examples/custom/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/file_explorer/test/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/dataframe/test/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/wifi/test/src" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/calculator/test/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/Calc/test/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/testttt/test/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/chess/test/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/main_app/test/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/fend_core/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/fend_core/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/Apps/audio_player/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Apps/calculator/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Apps/examples/confirm_exit/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Apps/examples/custom/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Apps/examples/custom_3d_glow/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Apps/examples/custom_font/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Apps/examples/custom_font_style/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Apps/examples/custom_keyboard/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Apps/examples/custom_keypad/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Apps/examples/custom_window_frame/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Apps/examples/file_dialog/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Apps/examples/hello_world/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Apps/examples/hello_world_par/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Apps/examples/hello_world_simple/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Apps/examples/images/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Apps/examples/keyboard_events/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Apps/examples/multiple_viewports/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Apps/examples/popups/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Apps/examples/puffin_profiler/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Apps/examples/screenshot/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Apps/examples/serial_windows/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Apps/examples/user_attention/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Apps/file_explorer/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/Apps/wifi/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />
